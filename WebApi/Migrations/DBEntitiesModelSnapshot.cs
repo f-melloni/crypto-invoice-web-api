@@ -182,7 +182,15 @@ namespace WebApi.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Name");
+                    b.Property<string>("AttachmenList");
+
+                    b.Property<string>("Content");
+
+                    b.Property<DateTime>("DateInserted");
+
+                    b.Property<string>("SmtpError");
+
+                    b.Property<int>("Status");
 
                     b.HasKey("Id");
 

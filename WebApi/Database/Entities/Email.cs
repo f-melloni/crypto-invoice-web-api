@@ -11,7 +11,14 @@ namespace WebApi.Database.Entities
         [Key]
         [Required]
         public int Id { get; set; }
-        public string Name { get; set; }
+
+        public string Content { get; set; }
+        public string AttachmenList { get; set; }
+        public DateTime DateInserted { get; set; }
+        public int Status { get; set; }
+        public string SmtpError { get; set; }
+
+
 
     }
 }
