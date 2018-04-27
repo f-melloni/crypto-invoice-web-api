@@ -32,7 +32,6 @@ namespace WebApi
             services.AddDbContext<DBEntities>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("WebApi")));
             services.AddIdentity<User, IdentityRole>(config =>
             {
-                config.SignIn.RequireConfirmedEmail = true;
             }).AddEntityFrameworkStores<DBEntities>()
                 .AddDefaultTokenProviders();
 
