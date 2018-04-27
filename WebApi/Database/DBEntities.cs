@@ -9,7 +9,7 @@ using WebApi.Database.Entities;
 
 namespace WebApi.Database
 {
-    public class DBEntities : IdentityDbContext<IdentityUser>
+    public class DBEntities : IdentityDbContext<User>
     {
 
         public virtual DbSet<Invoice> Invoices { get; set; }

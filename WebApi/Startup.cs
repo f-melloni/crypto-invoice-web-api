@@ -11,6 +11,8 @@ using Microsoft.Extensions.Options;
 using WebApi.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using WebApi.Database.Entities;
+using WebApi.Services;
 
 namespace WebApi
 {
@@ -27,14 +29,15 @@ namespace WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             
-            services.AddMvc();
             services.AddDbContext<DBEntities>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("WebApi")));
-            services.AddIdentity<IdentityUser, IdentityRole>(config =>
+            services.AddIdentity<User, IdentityRole>(config =>
             {
                 config.SignIn.RequireConfirmedEmail = true;
             }).AddEntityFrameworkStores<DBEntities>()
                 .AddDefaultTokenProviders();
 
+            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddMvc();
 
 
         }
@@ -46,8 +49,16 @@ namespace WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseStaticFiles();
 
-            app.UseMvc();
+            app.UseAuthentication();
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }
