@@ -13,6 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using WebApi.Database.Entities;
 using WebApi.Services;
+using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace WebApi
 {
@@ -34,6 +37,35 @@ namespace WebApi
             {
             }).AddEntityFrameworkStores<DBEntities>()
                 .AddDefaultTokenProviders();
+
+
+            //add fb +ggl oath
+
+            //FB
+            services.AddAuthentication(options=> {
+                options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+            }).AddFacebook(options =>
+            {
+                options.AppId = "";
+                options.AppSecret = "";
+            }).AddCookie();
+
+            //GGL
+            services.AddAuthentication(options => {
+                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+            }).AddGoogle(options =>
+            {
+                options.ClientId = "";
+                options.ClientSecret = "";
+            }).AddCookie();
+
+
 
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddMvc();
