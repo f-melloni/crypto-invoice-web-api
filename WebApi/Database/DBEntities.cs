@@ -20,6 +20,10 @@ namespace WebApi.Database
         {
            
         }
+        public DBEntities()
+        {
+                
+        }
     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
