@@ -32,9 +32,11 @@ namespace WebApi.Services
             {
                 //add to DB to send later
 
-                DBEntities dbe = new DBEntities();
-                dbe.Emails.Add(emailEntity);
-                dbe.SaveChanges();
+                using (DBEntities dbe = new DBEntities())
+                {
+                    dbe.Emails.Add(emailEntity);
+                    dbe.SaveChanges();
+                }
             }catch(Exception ex)
             {
 
@@ -78,7 +80,33 @@ namespace WebApi.Services
 
         public void SendEmail(MailMessage mailMessage)
         {
-            throw new NotImplementedException();
+            //iterate emails in our queue(database) and send them
+            using (DBEntities dbe = new DBEntities())
+            {
+                List<Email> emailQueue = dbe.Emails.ToList();
+                foreach (Email email in emailQueue)
+                {
+                    try
+                    {
+                        //deserialize json string to onj
+                        MailMessage mailMess = (MailMessage)JsonConvert.DeserializeObject(email.Content);
+                        client.Send(mailMess);
+
+                        //delete this email from our queue
+                        dbe.Emails.Remove(email);
+                        dbe.SaveChanges(); //removed from queue
+                    }
+                    catch (Exception ex)
+                    {
+                        //if sending failed
+                        email.SmtpError = ex.Message;
+                        email.Status = 1; //0 is in queue,1 is failed
+                        dbe.Emails.Update(email);
+                        dbe.SaveChanges();
+                    }
+                }
+            }
+           
         }
     }
 }
