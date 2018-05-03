@@ -90,6 +90,14 @@ namespace WebApi.Services
                     {
                         //deserialize json string to onj
                         MailMessage mailMess = (MailMessage)JsonConvert.DeserializeObject(email.Content);
+
+                        //check if there's attachment/s
+                        if(email.AttachmenList != "" && email.AttachmenList.Split(',').Count() > 0)
+                        {
+                            foreach (var AttachmentUrl in email.AttachmenList.Split(','))
+                               mailMess.Attachments.Add(WebDAV.GetFile(AttachmentUrl,"text/plain"));
+                        }
+
                         client.Send(mailMess);
 
                         //delete this email from our queue
