@@ -24,7 +24,10 @@ namespace WebApi.Controllers
                 using (DBEntities dbe = new DBEntities())
                 {
                     Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.Id == invoice_id); //get the invoice
-                    return Ok(invoice);
+                    if (invoice != null)
+                        return Ok(invoice);
+                    else
+                        return NotFound();
                 }
             }
             catch (Exception ex)
