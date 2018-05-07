@@ -22,6 +22,7 @@ namespace WebApi.Database.Entities
 
         public DateTime DateCreated { get; set; }
         public DateTime DateReceived { get; set; }
+        public User createdBy { get; set; }
 
         public int state { get; set; }
         public bool FixedRateOnCreation { get; set; }

@@ -20,9 +20,9 @@ namespace WebApi.Database
         {
            
         }
-        public DBEntities()
+        public DBEntities() : this(new DbContextOptions<DBEntities>())
         {
-                
+
         }
     
 
@@ -30,7 +30,13 @@ namespace WebApi.Database
     {
         base.OnModelCreating(modelBuilder);
     }
-
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+       if (!optionsBuilder.IsConfigured)
+           optionsBuilder.UseMySql(Startup.ConnectionString);
+    }
 
     }
+    
+
 }
