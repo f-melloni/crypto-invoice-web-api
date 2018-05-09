@@ -38,6 +38,7 @@ namespace WebApi.Controllers
 
         [Route("api/invoices/{invoice_id}")]
         [HttpPut]
+        [Authorize]
         public IActionResult EditInvoice(int invoice_id,[FromBody]Invoice invoiceModel)
         {
             try
@@ -91,6 +92,7 @@ namespace WebApi.Controllers
         {
             try
             {
+                //current user logged in
                 var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 Invoice invoice = new Invoice();
                 using (DBEntities dbe = new DBEntities())
@@ -127,6 +129,28 @@ namespace WebApi.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        [Route("api/invoices")]
+        public IActionResult GetListInvoices()
+        {
+            try
+            {
+                //we get the logged user id
+                var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                //find from invoices and filter invoices which belongs to current user
+                using (DBEntities dbe = new DBEntities())
+                {
+                    return Ok(dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new { id = x.Id, name = x.Name }).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
     }
 
 
