@@ -41,10 +41,6 @@ namespace WebApi
         {
             
             services.AddDbContext<DBEntities>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("WebApi")));
-            services.AddIdentity<User, IdentityRole>(config =>
-            {
-            }).AddEntityFrameworkStores<DBEntities>()
-                .AddDefaultTokenProviders();
 
 
             //add fb +ggl oath
