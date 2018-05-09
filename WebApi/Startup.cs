@@ -47,31 +47,31 @@ namespace WebApi
                 .AddDefaultTokenProviders();
 
 
-            //add fb +ggl oath
+            ////add fb +ggl oath
 
-            //FB
-            services.AddAuthentication(options=> {
-                options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            ////FB
+            //services.AddAuthentication(options=> {
+            //    options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
+            //    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-            }).AddFacebook(options =>
-            {
-                options.AppId = "";
-                options.AppSecret = "";
-            }).AddCookie();
+            //}).AddFacebook(options =>
+            //{
+            //    options.AppId = "";
+            //    options.AppSecret = "";
+            //}).AddCookie();
 
-            //GGL
-            services.AddAuthentication(options => {
-                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            ////GGL
+            //services.AddAuthentication(options => {
+            //    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+            //    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-            }).AddGoogle(options =>
-            {
-                options.ClientId = "";
-                options.ClientSecret = "";
-            }).AddCookie();
+            //}).AddGoogle(options =>
+            //{
+            //    options.ClientId = "";
+            //    options.ClientSecret = "";
+            //}).AddCookie();
 
 
 
