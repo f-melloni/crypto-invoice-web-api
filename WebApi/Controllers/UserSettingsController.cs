@@ -11,7 +11,7 @@ using WebApi.Database;
 
 namespace WebApi.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    //[Route("api/[controller]/[action]")]
     public class UserSettingsController : Controller
     {
         // GET api/values
