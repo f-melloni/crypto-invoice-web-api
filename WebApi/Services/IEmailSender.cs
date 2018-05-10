@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
@@ -13,7 +14,7 @@ namespace WebApi.Services
         Task SendEmailAsync(string email, string subject, string message);
         void CreateEmailEntity(string From, string To, string Body, string Subject, string AttachmentList);
         void AddEmailToQueue(Email email);
-        void SendEmail(MailMessage mailMessage);
+        void SendQueuedEmails();
     }
 
 

@@ -15,15 +15,13 @@ namespace WebApi.Services
     // For more details see https://go.microsoft.com/fwlink/?LinkID=532713
     public class EmailSender : IEmailSender
     {
-        public IConfiguration Configuration { get; }
         public SmtpClient client { get; set; }
-        public EmailSender(IConfiguration configuration)
+        public EmailSender(IConfiguration _configuration)
         {
-            Configuration = configuration;
             //create client
-            client = new SmtpClient(Configuration["SmtpServer:Host"], Convert.ToInt32(Configuration["SmtpServer:Port"]));
+            client = new SmtpClient(_configuration["SmtpServer:Host"], Convert.ToInt32(_configuration["SmtpServer:Port"]));
             client.UseDefaultCredentials = false;
-            client.Credentials = new NetworkCredential(Configuration["SmtpServer:Username"], Configuration["SmtpServer:Password"]);
+            client.Credentials = new NetworkCredential(_configuration["SmtpServer:Username"], _configuration["SmtpServer:Password"]);
             
         }
         public void AddEmailToQueue(Email emailEntity )
@@ -78,7 +76,7 @@ namespace WebApi.Services
             }
         }
 
-        public void SendEmail(MailMessage mailMessage)
+        public void SendQueuedEmails()
         {
             //iterate emails in our queue(database) and send them
             using (DBEntities dbe = new DBEntities())
