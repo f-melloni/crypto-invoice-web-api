@@ -22,25 +22,25 @@ namespace WebApi
     public class Startup
     {
         private static IConfiguration Configuration { get; set; }
+        private IHostingEnvironment CurrentEnv { get; set; }
 
-        public static string ConnectionString
-        {
-            get
-            {
-                return Configuration.GetConnectionString("DefaultConnection");
-            }
-        }
-        public Startup(IConfiguration configuration)
+
+    
+        public Startup(IConfiguration configuration,IHostingEnvironment env)
         {
             Configuration = configuration;
+            CurrentEnv = env;
         }
 
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
-            services.AddDbContext<DBEntities>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("WebApi")));
+            var connectionString = CurrentEnv.IsDevelopment()
+                ? Configuration.GetConnectionString("DefaultConnection")
+                : Configuration.GetConnectionString("ReleaseConnection");
+
+            services.AddDbContext<DBEntities>(options => options.UseMySql(connectionString, b => b.MigrationsAssembly("WebApi")));
             services.AddIdentity<User, IdentityRole>(config =>
             {
             }).AddEntityFrameworkStores<DBEntities>()
