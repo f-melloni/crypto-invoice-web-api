@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WebApi.Database;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Models.InvoiceAjaxModel;
 
 namespace WebApi.Controllers
 {
-    [Route("api/[controller]/[action]")]
     public class InvoiceController : Controller
     {
         [Route("api/invoices/{invoice_id}")]
@@ -144,6 +144,31 @@ namespace WebApi.Controllers
                 {
                     return Ok(dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new { id = x.Id, name = x.Name }).ToList());
                 }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [Route("api/invoices/init")]
+        [Authorize]
+        public IActionResult initData()
+        {
+            try
+            {
+                var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                List<InvoiceInitModel> listInvoices = new List<InvoiceInitModel>();
+                using (DBEntities dbe = new DBEntities())
+                {
+                    User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
+                    var displayName = loggedUser.UserName;
+                    List<Invoice> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).ToList();
+                    foreach(Invoice i in invoices)
+                        listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state});
+                    return Ok(new InvoiceInitDataAjaxModel() { UserId = userId, DisplayName = displayName, InvoiceList = listInvoices });
+                }
+
             }
             catch (Exception ex)
             {
