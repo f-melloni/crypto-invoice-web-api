@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using WebApi.Database;
 using WebApi.Database.Entities;
+using WebApi.Models.EmailModels;
 
 namespace WebApi.Services
 {
@@ -15,9 +16,11 @@ namespace WebApi.Services
     // For more details see https://go.microsoft.com/fwlink/?LinkID=532713
     public class EmailSender : IEmailSender
     {
+        private IConfiguration _configuration { get;set; }
         public SmtpClient client { get; set; }
-        public EmailSender(IConfiguration _configuration)
+        public EmailSender(IConfiguration conf)
         {
+            _configuration = conf;
             //create client
             client = new SmtpClient(_configuration["SmtpServer:Host"], Convert.ToInt32(_configuration["SmtpServer:Port"]));
             client.UseDefaultCredentials = false;
@@ -46,17 +49,12 @@ namespace WebApi.Services
             return Task.CompletedTask;
         }
 
-        public void CreateEmailEntity(string From, string To, string Body, string Subject, string AttachmentList)
+        public Email CreateEmailEntity(string From, string To, string Body, string Subject, string AttachmentList)
         {
             try
             {
                 //create MailMessage obj
-                MailMessage mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress(From);
-                mailMessage.To.Add(To);
-                mailMessage.Body = Body;
-                mailMessage.Subject = Subject;
-
+                MailMessageJsonModel mailMessage = new MailMessageJsonModel(From, To,Body,Subject);
                 //serialize MailMessage to JSON object
                 string mailMessageJson = JsonConvert.SerializeObject(mailMessage);
 
@@ -68,11 +66,11 @@ namespace WebApi.Services
                 email.SmtpError = "";
                 email.Status = 0;
 
-                
+                return email;
             }
             catch(Exception ex)
             {
-
+                return null;
             }
         }
 
@@ -87,10 +85,10 @@ namespace WebApi.Services
                     try
                     {
                         //deserialize json string to onj
-                        MailMessage mailMess = (MailMessage)JsonConvert.DeserializeObject(email.Content);
-
+                        MailMessageJsonModel mailMessJsonModel = JsonConvert.DeserializeObject<MailMessageJsonModel>(email.Content);
+                        MailMessage mailMess = new MailMessage(mailMessJsonModel.From, mailMessJsonModel.To, mailMessJsonModel.Subject, mailMessJsonModel.Body);
                         //check if there's attachment/s
-                        if(email.AttachmenList != "" && email.AttachmenList.Split(',').Count() > 0)
+                        if (email.AttachmenList != "" && email.AttachmenList.Split(',').Count() > 0)
                         {
                             foreach (var AttachmentUrl in email.AttachmenList.Split(','))
                                mailMess.Attachments.Add(WebDAV.GetFile(AttachmentUrl,"text/plain"));
