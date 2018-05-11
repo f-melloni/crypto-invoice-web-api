@@ -48,6 +48,7 @@ namespace WebApi.Controllers
         [HttpPut]
         [Authorize]
         [Route("api/user-settings/{id}")]
+        [EnableCors("CorsPolicy")]
         public IActionResult SetUserSettings(string id, [FromBody]UserSettingsAjaxModel model)
         {
             try
