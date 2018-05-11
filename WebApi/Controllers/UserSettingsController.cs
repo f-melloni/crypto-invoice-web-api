@@ -67,7 +67,7 @@ namespace WebApi.Controllers
                         user.XMRPrivateViewKey = model.XMRPrivateViewKey;
                         user.XMRPublicViewKey = model.XMRPublicViewKey;
                         dbe.SaveChanges(); //updated in database
-                        return Ok();
+                        return Ok("{success: true}");
 
                     }
                 }
