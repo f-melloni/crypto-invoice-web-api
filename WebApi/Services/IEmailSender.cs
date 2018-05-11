@@ -10,9 +10,8 @@ namespace WebApi.Services
 {
     public interface IEmailSender
     {
-
         Task SendEmailAsync(string email, string subject, string message);
-        void CreateEmailEntity(string From, string To, string Body, string Subject, string AttachmentList);
+        Email CreateEmailEntity(string From, string To, string Body, string Subject, string AttachmentList);
         void AddEmailToQueue(Email email);
         void SendQueuedEmails();
     }

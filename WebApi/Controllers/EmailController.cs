@@ -13,10 +13,14 @@ using Microsoft.Extensions.Configuration;
 
 namespace WebApi.Controllers
 {
-    [Route("api/[controller]/[action]")]
     public class EmailController : Controller
     {
-        IConfiguration _configuration { get; }
+        IConfiguration _configuration { get; set; }
+        public EmailController(IConfiguration co)
+        {
+            _configuration = co;
+        }
+
         [Route("api/[controller]/sendFromQueue")]
         public IActionResult SendMailFromQueue() {
             EmailSender eSend = new EmailSender(_configuration);
@@ -24,5 +28,17 @@ namespace WebApi.Controllers
             return Ok();
         }
 
+        [Route("api/[controller]/TestSendMail")]
+        public IActionResult TestSendMail()
+        {
+            EmailSender eSend = new EmailSender(_configuration);
+
+            //createEmailEntity
+            Email email = eSend.CreateEmailEntity("binh.vu4571@gmail.com", "princecz904571@gmail.com", "Ahoj", "Zprava", "");
+            eSend.AddEmailToQueue(email);
+
+            eSend.SendQueuedEmails();
+            return Ok();
+        }
     }
 }
