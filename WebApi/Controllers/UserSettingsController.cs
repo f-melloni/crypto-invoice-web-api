@@ -8,6 +8,7 @@ using WebApi.Models.UserSettingsAjaxModel;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using WebApi.Database;
+using Microsoft.AspNetCore.Cors;
 
 namespace WebApi.Controllers
 {
@@ -18,6 +19,7 @@ namespace WebApi.Controllers
         [HttpGet]
         [Authorize]
         [Route("api/user-settings/{id}")]
+        [EnableCors("CorsPolicy")]
         public IActionResult GetUserSettings(string id)
         {
             try
