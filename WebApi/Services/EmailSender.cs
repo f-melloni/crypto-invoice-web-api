@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using SharpRaven;
+using SharpRaven.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -107,6 +109,9 @@ namespace WebApi.Services
                         email.Status = 1; //0 is in queue,1 is failed
                         dbe.Emails.Update(email);
                         dbe.SaveChanges();
+
+                        RavenClient ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
+                            ravenClient.Capture(new SentryEvent(ex));
                     }
                 }
             }
