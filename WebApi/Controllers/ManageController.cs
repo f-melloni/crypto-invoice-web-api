@@ -14,6 +14,9 @@ using WebApi.Models;
 using WebApi.Models.ManageViewModels;
 using WebApi.Services;
 using WebApi.Database.Entities;
+using Microsoft.AspNetCore.Diagnostics;
+using SharpRaven;
+using SharpRaven.Data;
 
 namespace WebApi.Controllers
 {
@@ -502,5 +505,10 @@ namespace WebApi.Controllers
         }
 
         #endregion
+
+
+
+       
+
     }
 }

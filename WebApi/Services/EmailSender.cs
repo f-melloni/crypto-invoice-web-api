@@ -101,19 +101,17 @@ namespace WebApi.Services
                         //delete this email from our queue
                         dbe.Emails.Remove(email);
                         dbe.SaveChanges(); //removed from queue
-                    }
-                    catch (Exception ex)
-                    {
-                        //if sending failed
-                        email.SmtpError = ex.Message;
-                        email.Status = 1; //0 is in queue,1 is failed
-                        dbe.Emails.Update(email);
-                        dbe.SaveChanges();
-
-                        RavenClient ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
-                            ravenClient.Capture(new SentryEvent(ex));
-                    }
                 }
+                    catch (Exception ex)
+                {
+                    //if sending failed
+                    email.SmtpError = ex.Message;
+                    email.Status = 1; //0 is in queue,1 is failed
+                    dbe.Emails.Update(email);
+                    dbe.SaveChanges();
+
+                }
+            }
             }
            
         }

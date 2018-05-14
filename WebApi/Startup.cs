@@ -96,6 +96,10 @@ namespace WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+
+            app.UseExceptionHandler("/api/Error/HandlingException");
+
             app.UseStaticFiles();
 
             app.UseAuthentication();
