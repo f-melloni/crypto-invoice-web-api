@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApi.Database.Entities;
 
 namespace WebApi.Models.InvoiceAjaxModel
 {
@@ -9,7 +10,7 @@ namespace WebApi.Models.InvoiceAjaxModel
     {
         public string UserId { get; set; }
         public string DisplayName { get; set; }
-        public List<InvoiceInitModel> InvoiceList {get; set; }
+        public List<object> InvoiceList {get; set; }
     }
     public class InvoiceInitModel
     {
