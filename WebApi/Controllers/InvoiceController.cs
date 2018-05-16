@@ -10,6 +10,7 @@ using System.Security.Claims;
 using WebApi.Database;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Models.InvoiceAjaxModel;
+using WebApi.Services;
 
 namespace WebApi.Controllers
 {
@@ -121,6 +122,10 @@ namespace WebApi.Controllers
 
                     dbe.Invoices.Add(invoice);
                     dbe.SaveChanges();
+
+                    //get the id and call create new address
+                    int id = invoice.Id;
+                    RabbitMessages.GetNewAddress("LTC", id);
                     return Ok();
                 }
             }
