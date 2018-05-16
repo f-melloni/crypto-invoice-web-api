@@ -11,6 +11,7 @@ using WebApi.Database;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Models.InvoiceAjaxModel;
 using WebApi.Services;
+using Microsoft.AspNetCore.Cors;
 
 namespace WebApi.Controllers
 {
@@ -137,6 +138,7 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Authorize]
+        [EnableCors("CorsPolicy")]
         [Route("api/invoices")]
         public IActionResult GetListInvoices()
         {
@@ -158,20 +160,28 @@ namespace WebApi.Controllers
 
         [Route("api/invoices/init")]
         [Authorize]
+        [EnableCors("CorsPolicy")]
         public IActionResult initData()
         {
             try
             {
                 var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                List<InvoiceInitModel> listInvoices = new List<InvoiceInitModel>();
+                // List<InvoiceInitModel> listInvoices = new List<InvoiceInitModel>();
                 using (DBEntities dbe = new DBEntities())
                 {
                     User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
                     var displayName = loggedUser.UserName;
-                    List<Invoice> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).ToList();
-                    foreach(Invoice i in invoices)
-                        listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state});
-                    return Ok(new InvoiceInitDataAjaxModel() { UserId = userId, DisplayName = displayName, InvoiceList = listInvoices });
+                    // we do not want to send the User entity (settings, password hash etc.) with invoices
+                    List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
+                        name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
+                        ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
+                        fixedRateOnCreation = x.FixedRateOnCreation, fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
+                        oldFixER_BTC = x.OldFixER_BTC, oldFixER_LTC = x.OldFixER_LTC, oldFixER_ETH = x.OldFixER_ETH, oldFixER_XMR = x.OldFixER_XMR,
+                        newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR
+                    }).ToList<object>();
+                    /* foreach(Invoice i in invoices)
+                        listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
+                    return Ok(new InvoiceInitDataAjaxModel() { UserId = userId, DisplayName = displayName, InvoiceList = invoices });
                 }
 
             }
