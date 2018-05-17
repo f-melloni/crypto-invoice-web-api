@@ -192,6 +192,15 @@ namespace WebApi.Controllers
             }
         }
 
+        [Route("api/invoices/testShit")]
+        [HttpGet]
+        public IActionResult testShit()
+        {
+            RabbitMessages.GetNewAddress("BTC", 9999);
+            return Ok();
+
+        }
+
     }
 
 

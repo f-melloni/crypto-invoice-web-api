@@ -29,6 +29,8 @@ namespace WebApi
         public Startup(IConfiguration configuration,IHostingEnvironment env)
         {
             Configuration = configuration;
+            RabbitMessenger.Setup(configuration);
+            
             CurrentEnv = env;
             ConnectionString = CurrentEnv.IsDevelopment()
                ? Configuration.GetConnectionString("DefaultConnection")
