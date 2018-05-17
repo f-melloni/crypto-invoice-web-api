@@ -9,7 +9,7 @@ namespace WebApi.Services
     {
         public static void GetNewAddress(string currencyCode, int id)
         {
-            string message = String.Format("{\"jsonrpc\": \"2.0\", \"method\": \"GetNewAddress\", \"params\": [], \"id\": {0}}",id);
+            string message = $@"{{""jsonrpc"": ""2.0"", ""method"": ""GetNewAddress"", ""params"": [], ""id"": {id} }}";
             RabbitMessenger.Send(message,currencyCode);
 
         } 
