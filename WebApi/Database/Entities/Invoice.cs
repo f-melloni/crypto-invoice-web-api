@@ -20,6 +20,15 @@ namespace WebApi.Database.Entities
         public string ETHVS { get; set; }
         public string XMRVS { get; set; }
 
+        /// <summary>
+        /// Transaction ID of payment
+        /// </summary>
+        public string TransactionId { get; set; }
+        /// <summary>
+        /// In what crypto currency was the payment made
+        /// </summary>
+        public string TransactionCurrencyCode { get; set; }
+
         public DateTime DateCreated { get; set; }
         public DateTime? DateReceived { get; set; }
         public User createdBy { get; set; }
