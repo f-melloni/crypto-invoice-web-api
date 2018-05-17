@@ -21,7 +21,7 @@ namespace WebApi.Database.Entities
         public string XMRVS { get; set; }
 
         public DateTime DateCreated { get; set; }
-        public DateTime DateReceived { get; set; }
+        public DateTime? DateReceived { get; set; }
         public User createdBy { get; set; }
 
         public int state { get; set; }
