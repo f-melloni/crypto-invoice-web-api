@@ -173,11 +173,12 @@ namespace WebApi.Controllers
                     var displayName = loggedUser.UserName;
                     // we do not want to send the User entity (settings, password hash etc.) with invoices
                     List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
-                        name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
+                        id = x.Id, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
                         ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
                         fixedRateOnCreation = x.FixedRateOnCreation, fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         oldFixER_BTC = x.OldFixER_BTC, oldFixER_LTC = x.OldFixER_LTC, oldFixER_ETH = x.OldFixER_ETH, oldFixER_XMR = x.OldFixER_XMR,
-                        newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR
+                        newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
+                        createdBy = x.createdBy.Email
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
