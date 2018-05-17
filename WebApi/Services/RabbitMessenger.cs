@@ -9,6 +9,8 @@ using RabbitMQ.Client.Events;
 using Newtonsoft.Json.Linq;
 using SharpRaven;
 using SharpRaven.Data;
+using WebApi.Database.Entities;
+using WebApi.Database;
 
 namespace WebApi.Services
 {
@@ -49,14 +51,14 @@ namespace WebApi.Services
                 properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
 
-                //Consumer = new EventingBasicConsumer(channel);
-                //Consumer.Received += (ch, ea) =>
-                //{
-                //    JObject body = JObject.Parse(Encoding.UTF8.GetString(ea.Body));
-                //    //Parse WatchAddress message
-                //    Observer.ParseMessage(body);
-                //    channel.BasicAck(ea.DeliveryTag, false);
-                //};
+                Consumer = new EventingBasicConsumer(channel);
+                Consumer.Received += (ch, ea) =>
+                {
+                    JObject body = JObject.Parse(Encoding.UTF8.GetString(ea.Body));
+                    //Parse WatchAddress message
+                    RabbitMessenger.ParseMessage(body);
+                    channel.BasicAck(ea.DeliveryTag, false);
+                };
                 String consumerTag = channel.BasicConsume(QueueIn, false, Consumer);
             }
             catch (Exception ex)
@@ -64,6 +66,54 @@ namespace WebApi.Services
                 ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
                 ravenClient.Capture(new SentryEvent(ex));
 
+            }
+        }
+
+        public static void ParseMessage(JToken message)
+        {
+            //we need to check if the message is type of rpcReq or rpcResponse
+            string method = message["method"].ToString().ToLower();
+            if (!String.IsNullOrEmpty(method))
+            {
+                switch (method)
+                {
+                    case "watchaddress":
+                        break;
+                }
+            }
+            else //if thr message is type of response(means the message is  GetNewAddress)
+            {
+                var result = ((JObject)message["result"]);
+
+                RabbitMessenger.GetAddress(result);
+               
+
+            }
+            
+          
+               
+        }
+
+        private static void GetAddress(JObject jOB)
+        {
+            int id = jOB.GetValue("invoice_id").ToObject<int>();
+            using (DBEntities dbe = new DBEntities())
+            {
+                Invoice i = dbe.Invoices.SingleOrDefault(inv => inv.Id == id);
+                string currency = jOB.GetValue("currency").ToObject<string>();
+                string address = jOB.GetValue("newAddress").ToObject<string>();
+
+                switch (currency)
+                {
+                    case "BTC":
+                        i.BTCAddress = address;
+                        break;
+                    case "LTC":
+                        i.LTCAddress = address;
+                        break;
+                }
+                dbe.Invoices.Update(i);
+                dbe.SaveChanges();
             }
         }
 
