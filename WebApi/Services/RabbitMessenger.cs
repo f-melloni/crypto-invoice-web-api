@@ -77,7 +77,33 @@ namespace WebApi.Services
             {
                 switch (method)
                 {
-                    case "watchaddress":
+                    case "TransactionSeen":
+                        //get values from params
+                        JObject pars = message["params"].ToObject<JObject>();
+                        string currencyCode = pars.GetValue("CurrencyCode").ToObject<string>();
+                        string address = pars.GetValue("Address").ToObject<string>();
+                        double amount = pars.GetValue("Amount").ToObject<double>();
+                        DateTime timeStamp = pars.GetValue("Timestamp").ToObject<DateTime>();
+
+                        //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
+                        using(DBEntities dbe = new DBEntities()){
+                            switch (currencyCode)
+                            {
+                                case "BTC":
+                                    Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
+                                    double btcAmountRequired = (double)invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount;
+                                    break;
+                                case "LTC":
+                                    Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
+                                    double ltcAmountRequired = (double)invoiceLTC.NewFixER_LTC / invoiceLTC.FiatAmount;
+                                    break;
+                                case "ETH":
+                                    Invoice invoiceETH = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
+                                    double ethAmountRequired = (double)invoiceETH.NewFixER_ETH / invoiceETH.FiatAmount;
+                                    break;
+                            }
+                        }
+
                         break;
                 }
             }
