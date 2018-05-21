@@ -102,14 +102,13 @@ namespace WebApi.Controllers
                     invoice.Description = invoiceModel.Description;
                     invoice.FiatAmount = invoiceModel.FiatAmount;
                     invoice.FiatCurrencyCode = invoiceModel.FiatCurrencyCode;
-
-                    invoice.NewFixER_BTC = invoiceModel.NewFixER_BTC;
-                    invoice.NewFixER_ETH = invoiceModel.NewFixER_ETH;
-                    invoice.NewFixER_LTC = invoiceModel.NewFixER_LTC;
-                    invoice.NewFixER_XMR = invoiceModel.NewFixER_XMR;
+                    invoice.state = 1;//not payed
+                    //invoice.NewFixER_BTC = invoiceModel.NewFixER_BTC;
+                    //invoice.NewFixER_ETH = invoiceModel.NewFixER_ETH;
+                    //invoice.NewFixER_LTC = invoiceModel.NewFixER_LTC;
+                    //invoice.NewFixER_XMR = invoiceModel.NewFixER_XMR;
          
                     dbe.Invoices.Add(invoice);
-                    dbe.SaveChanges();
 
 
 
@@ -128,6 +127,7 @@ namespace WebApi.Controllers
                         invoice.NewFixER_LTC = price;
 
                     }
+                    dbe.SaveChanges();
 
                     return Ok();
                 }

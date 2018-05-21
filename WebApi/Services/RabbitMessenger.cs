@@ -92,16 +92,26 @@ namespace WebApi.Services
                                 case "BTC":
                                     Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
                                     double btcAmountRequired = (double)invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount;
+                                    if(btcAmountRequired >= amount)
+                                    {
+                                        invoiceBTC.state = 2;
+                                    }
+                                    dbe.Invoices.Update(invoiceBTC);
                                     break;
                                 case "LTC":
                                     Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
                                     double ltcAmountRequired = (double)invoiceLTC.NewFixER_LTC / invoiceLTC.FiatAmount;
+                                    if (ltcAmountRequired >= amount)
+                                    {
+                                        invoiceLTC.state = 2;
+                                    }
+                                    dbe.Invoices.Update(invoiceLTC);
+
                                     break;
-                                case "ETH":
-                                    Invoice invoiceETH = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
-                                    double ethAmountRequired = (double)invoiceETH.NewFixER_ETH / invoiceETH.FiatAmount;
-                                    break;
+                               
                             }
+                            dbe.SaveChanges();
+                            
                         }
 
                         break;
@@ -113,7 +123,6 @@ namespace WebApi.Services
 
                 RabbitMessenger.GetAddress(result);
                
-
             }
             
           
