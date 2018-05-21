@@ -11,9 +11,10 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DBEntities))]
-    partial class DBEntitiesModelSnapshot : ModelSnapshot
+    [Migration("20180517153148_TransactionId_CurrencyCode")]
+    partial class TransactionId_CurrencyCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,7 +163,7 @@ namespace WebApi.Migrations
 
                     b.Property<string>("ETHVS");
 
-                    b.Property<double>("FiatAmount");
+                    b.Property<string>("FiatAmount");
 
                     b.Property<string>("FiatCurrencyCode");
 
