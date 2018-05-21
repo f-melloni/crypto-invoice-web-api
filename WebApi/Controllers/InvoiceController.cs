@@ -178,7 +178,7 @@ namespace WebApi.Controllers
                         fixedRateOnCreation = x.FixedRateOnCreation, fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         oldFixER_BTC = x.OldFixER_BTC, oldFixER_LTC = x.OldFixER_LTC, oldFixER_ETH = x.OldFixER_ETH, oldFixER_XMR = x.OldFixER_XMR,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
-                        createdBy = x.createdBy.Email
+                        createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
@@ -198,7 +198,7 @@ namespace WebApi.Controllers
         {
             RabbitMessages.GetNewAddress("BTC", 9999);
             return Ok();
-
+                
         }
 
     }
