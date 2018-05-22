@@ -86,13 +86,13 @@ namespace WebApi.Services
                         DateTime timeStamp = transactionSeenParams.GetValue("Timestamp").ToObject<DateTime>();
 
                         //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
-                        using(DBEntities dbe = new DBEntities()){
+                        using (DBEntities dbe = new DBEntities()) {
                             switch (currencyCode)
                             {
                                 case "BTC":
                                     Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
                                     double btcAmountRequired = (double)invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount;
-                                    if(btcAmountRequired >= amount)
+                                    if (btcAmountRequired >= amount)
                                     {
                                         invoiceBTC.state = 2;
                                     }
@@ -108,10 +108,10 @@ namespace WebApi.Services
                                     dbe.Invoices.Update(invoiceLTC);
 
                                     break;
-                               
+
                             }
                             dbe.SaveChanges();
-                            
+
                         }
 
                         break;
@@ -126,7 +126,7 @@ namespace WebApi.Services
                         {
                             Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.Id == invoiceId);
                             switch (currCode)
-                            {                                    
+                            {
                                 case "BTC":
                                     invoice.BTCAddress = addrr;
                                     break;
@@ -138,7 +138,7 @@ namespace WebApi.Services
                             dbe.SaveChanges();
                         }
 
-                            break;
+                        break;
                     case "TransactionConfirmed":
                         JObject transactionConfirmedParams = message["params"].ToObject<JObject>();
                         string currencyCode_ = transactionConfirmedParams.GetValue("CurrencyCode").ToObject<string>();
@@ -150,7 +150,7 @@ namespace WebApi.Services
                             {
                                 case "BTC":
                                     Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address_);
-                                    if (invoiceBTC.NewFixER_BTC/invoiceBTC.FiatAmount <= amount_)
+                                    if (invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount <= amount_)
                                     {
                                         invoiceBTC.state = 3;
                                         dbe.Invoices.Update(invoiceBTC);
@@ -171,6 +171,7 @@ namespace WebApi.Services
                         }
 
                         break;
+                } 
             }
      
           
