@@ -11,7 +11,7 @@ namespace WebApi.Services
     {
         public static void GetNewAddress(string currencyCode, int invoice_id,string user_xpub)
         {
-            string message = $@"{{""jsonrpc"": ""2.0"", ""method"": ""GetNewAddress"", ""params"": {{""invoice_id"":""{invoice_id}"",""user_xpub"":""{user_xpub}"" }} }}";
+            string message = $@"{{""jsonrpc"": ""2.0"", ""method"": ""GetNewAddress"", ""params"": {{""InvoiceID"":{invoice_id},""XPUB"":""{user_xpub}"" }} }}";
             RabbitMessenger.Send(message,currencyCode);
 
         } 

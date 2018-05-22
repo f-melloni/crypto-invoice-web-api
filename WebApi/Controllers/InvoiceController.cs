@@ -102,13 +102,14 @@ namespace WebApi.Controllers
                     invoice.Description = invoiceModel.Description;
                     invoice.FiatAmount = invoiceModel.FiatAmount;
                     invoice.FiatCurrencyCode = invoiceModel.FiatCurrencyCode;
-                    invoice.state = 1;//not payed
+                    invoice.state = 1;//not paid
                     //invoice.NewFixER_BTC = invoiceModel.NewFixER_BTC;
                     //invoice.NewFixER_ETH = invoiceModel.NewFixER_ETH;
                     //invoice.NewFixER_LTC = invoiceModel.NewFixER_LTC;
                     //invoice.NewFixER_XMR = invoiceModel.NewFixER_XMR;
          
                     dbe.Invoices.Add(invoice);
+                    dbe.SaveChanges();
 
 
 

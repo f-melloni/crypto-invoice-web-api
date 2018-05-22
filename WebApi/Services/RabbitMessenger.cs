@@ -79,11 +79,11 @@ namespace WebApi.Services
                 {
                     case "TransactionSeen":
                         //get values from params
-                        JObject pars = message["params"].ToObject<JObject>();
-                        string currencyCode = pars.GetValue("CurrencyCode").ToObject<string>();
-                        string address = pars.GetValue("Address").ToObject<string>();
-                        double amount = pars.GetValue("Amount").ToObject<double>();
-                        DateTime timeStamp = pars.GetValue("Timestamp").ToObject<DateTime>();
+                        JObject transactionSeenParams = message["params"].ToObject<JObject>();
+                        string currencyCode = transactionSeenParams.GetValue("CurrencyCode").ToObject<string>();
+                        string address = transactionSeenParams.GetValue("Address").ToObject<string>();
+                        double amount = transactionSeenParams.GetValue("Amount").ToObject<double>();
+                        DateTime timeStamp = transactionSeenParams.GetValue("Timestamp").ToObject<DateTime>();
 
                         //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
                         using(DBEntities dbe = new DBEntities()){
@@ -115,42 +115,90 @@ namespace WebApi.Services
                         }
 
                         break;
-                }
-            }
-            else //if thr message is type of response(means the message is  GetNewAddress)
-            {
-                var result = ((JObject)message["result"]);
 
-                RabbitMessenger.GetAddress(result);
-               
+                    case "SetAddress":
+                        //get values from params
+                        JObject setAddressParams = message["params"].ToObject<JObject>();
+                        string currCode = setAddressParams.GetValue("CurrencyCode").ToObject<string>();
+                        string addrr = setAddressParams.GetValue("Address").ToObject<string>();
+                        int invoiceId = setAddressParams.GetValue("InvoiceId").ToObject<int>();
+                        using (DBEntities dbe = new DBEntities())
+                        {
+                            Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.Id == invoiceId);
+                            switch (currCode)
+                            {                                    
+                                case "BTC":
+                                    invoice.BTCAddress = addrr;
+                                    break;
+                                case "LTC":
+                                    invoice.LTCAddress = addrr;
+                                    break;
+                            }
+                            dbe.Invoices.Update(invoice);
+                            dbe.SaveChanges();
+                        }
+
+                            break;
+                    case "TransactionConfirmed":
+                        JObject transactionConfirmedParams = message["params"].ToObject<JObject>();
+                        string currencyCode_ = transactionConfirmedParams.GetValue("CurrencyCode").ToObject<string>();
+                        string address_ = transactionConfirmedParams.GetValue("Address").ToObject<string>();
+                        double amount_ = transactionConfirmedParams.GetValue("Amount").ToObject<double>();
+                        using (DBEntities dbe = new DBEntities())
+                        {
+                            switch (currencyCode_)
+                            {
+                                case "BTC":
+                                    Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address_);
+                                    if (invoiceBTC.NewFixER_BTC/invoiceBTC.FiatAmount <= amount_)
+                                    {
+                                        invoiceBTC.state = 3;
+                                        dbe.Invoices.Update(invoiceBTC);
+                                    }
+                                    break;
+                                case "LTC":
+                                    Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address_);
+                                    if (invoiceLTC.NewFixER_BTC / invoiceLTC.FiatAmount <= amount_)
+                                    {
+                                        invoiceLTC.state = 3;
+                                        dbe.Invoices.Update(invoiceLTC);
+
+                                    }
+                                    break;
+                            }
+
+                            dbe.SaveChanges();
+                        }
+
+                        break;
             }
-            
+     
           
                
         }
 
-        private static void GetAddress(JObject jOB)
-        {
-            int id = jOB.GetValue("invoice_id").ToObject<int>();
-            using (DBEntities dbe = new DBEntities())
-            {
-                Invoice i = dbe.Invoices.SingleOrDefault(inv => inv.Id == id);
-                string currency = jOB.GetValue("currency").ToObject<string>();
-                string address = jOB.GetValue("newAddress").ToObject<string>();
+        //private static void GetAddress(JObject jOB)
+        //{
+        //    int id = jOB.GetValue("invoice_id").ToObject<int>();
+        //    using (DBEntities dbe = new DBEntities())
+        //    {
+        //        Invoice i = dbe.Invoices.SingleOrDefault(inv => inv.Id == id);
+        //        string currency = jOB.GetValue("currency").ToObject<string>();
+        //        string address = jOB.GetValue("newAddress").ToObject<string>();
 
-                switch (currency)
-                {
-                    case "BTC":
-                        i.BTCAddress = address;
-                        break;
-                    case "LTC":
-                        i.LTCAddress = address;
-                        break;
-                }
-                dbe.Invoices.Update(i);
-                dbe.SaveChanges();
-            }
-        }
+        //        switch (currency)
+        //        {
+        //            case "BTC":
+        //                i.BTCAddress = address;
+        //                break;
+        //            case "LTC":
+        //                i.LTCAddress = address;
+        //                break;
+        //        }
+        //        dbe.Invoices.Update(i);
+        //        dbe.SaveChanges();
+        //    }
+        //}
 
         private static void CreateChannel(object sender, ShutdownEventArgs e)
         {
