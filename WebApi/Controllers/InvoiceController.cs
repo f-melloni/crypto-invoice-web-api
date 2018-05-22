@@ -65,6 +65,7 @@ namespace WebApi.Controllers
                         invoice.NewFixER_XMR = invoiceModel.NewFixER_XMR;
             
                         dbe.Invoices.Update(invoice);
+                        dbe.SaveChanges();
                         return Ok();
                     }
                 }
@@ -78,6 +79,25 @@ namespace WebApi.Controllers
             catch(Exception ex)
             {
                 return BadRequest(ex);
+            }
+        }
+
+        [Route("api/invoice/{id}")]
+        [HttpDelete]
+        [Authorize]
+        [EnableCors("CorsPolicy")]
+        public IActionResult deleteInvoice(int id)
+        {
+            //Delete only invoices belonging to the logged in user
+            var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            using (DBEntities dbe = new DBEntities())
+            {
+                var invoiceExists = dbe.Invoices.Any(i => i.Id == id && i.createdBy.Id == userId);
+                if (!invoiceExists)
+                    return NotFound();
+                dbe.Invoices.Remove(dbe.Invoices.Single(i => i.Id == id));
+                dbe.SaveChanges();
+                return Ok("{}");
             }
         }
 
@@ -176,10 +196,11 @@ namespace WebApi.Controllers
                     // we do not want to send the User entity (settings, password hash etc.) with invoices
                     List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
                         id = x.Id, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
-                        ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state
-                        , fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
+                        ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
+                        fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
-                        createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId
+                        createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId,
+                        acceptBtc = x.AcceptBTC, acceptLtc = x.AcceptLTC, acceptEth = x.AcceptETH, acceptXmr = x.AcceptXMR
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
