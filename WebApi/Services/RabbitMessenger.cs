@@ -122,6 +122,8 @@ namespace WebApi.Services
                         string currCode = setAddressParams.GetValue("CurrencyCode").ToObject<string>();
                         string addrr = setAddressParams.GetValue("Address").ToObject<string>();
                         int invoiceId = setAddressParams.GetValue("InvoiceId").ToObject<int>();
+                        string TxID = setAddressParams.GetValue("TXID").ToObject<string>();
+
                         using (DBEntities dbe = new DBEntities())
                         {
                             Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.Id == invoiceId);
@@ -129,9 +131,11 @@ namespace WebApi.Services
                             {
                                 case "BTC":
                                     invoice.BTCAddress = addrr;
+                                    invoice.TransactionId = TxID;
                                     break;
                                 case "LTC":
                                     invoice.LTCAddress = addrr;
+                                    invoice.TransactionId = TxID;
                                     break;
                             }
                             dbe.Invoices.Update(invoice);
@@ -144,6 +148,7 @@ namespace WebApi.Services
                         string currencyCode_ = transactionConfirmedParams.GetValue("CurrencyCode").ToObject<string>();
                         string address_ = transactionConfirmedParams.GetValue("Address").ToObject<string>();
                         double amount_ = transactionConfirmedParams.GetValue("Amount").ToObject<double>();
+                        string TxID_ = transactionConfirmedParams.GetValue("TXID").ToObject<string>();
                         using (DBEntities dbe = new DBEntities())
                         {
                             switch (currencyCode_)
@@ -153,6 +158,7 @@ namespace WebApi.Services
                                     if (invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount <= amount_)
                                     {
                                         invoiceBTC.state = 3;
+                                        invoiceBTC.TransactionId = TxID_;
                                         dbe.Invoices.Update(invoiceBTC);
                                     }
                                     break;
@@ -160,6 +166,7 @@ namespace WebApi.Services
                                     Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address_);
                                     if (invoiceLTC.NewFixER_BTC / invoiceLTC.FiatAmount <= amount_)
                                     {
+                                        invoiceLTC.TransactionId = TxID_;
                                         invoiceLTC.state = 3;
                                         dbe.Invoices.Update(invoiceLTC);
 
