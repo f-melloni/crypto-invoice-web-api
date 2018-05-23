@@ -20,6 +20,8 @@ namespace WebApi.Controllers
     {
         [Route("api/invoices/{invoice_id}")]
         [HttpGet]
+        [Authorize]
+        [EnableCors("CorsPolicy")]
         public IActionResult GetInvoice(int invoice_id)
         {
             try
@@ -102,6 +104,8 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
+        [EnableCors("CorsPolicy")]
         [Route("api/invoices")]
         public IActionResult CreateInvoice([FromBody]Invoice invoiceModel)
         {
@@ -123,6 +127,7 @@ namespace WebApi.Controllers
                     invoice.FiatAmount = invoiceModel.FiatAmount;
                     invoice.FiatCurrencyCode = invoiceModel.FiatCurrencyCode;
                     invoice.state = 1;//not paid
+                    invoice.Recipient = invoiceModel.Recipient;
                     //invoice.NewFixER_BTC = invoiceModel.NewFixER_BTC;
                     //invoice.NewFixER_ETH = invoiceModel.NewFixER_ETH;
                     //invoice.NewFixER_LTC = invoiceModel.NewFixER_LTC;
@@ -131,14 +136,13 @@ namespace WebApi.Controllers
                     dbe.Invoices.Add(invoice);
                     dbe.SaveChanges();
 
-
-
                     //get the id and call create new address
                     if (invoiceModel.AcceptBTC){
                         RabbitMessages.GetNewAddress("BTC", invoice.Id,loggedUser.BTCXPUB);
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=BTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
                         var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
                         invoice.NewFixER_BTC = price;
+                        invoice.AcceptBTC = true;
                     }
                     if (invoiceModel.AcceptLTC)
                     {
@@ -146,11 +150,11 @@ namespace WebApi.Controllers
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=LTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
                         var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
                         invoice.NewFixER_LTC = price;
-
+                        invoice.AcceptLTC = true;
                     }
                     dbe.SaveChanges();
 
-                    return Ok();
+                    return Ok(invoice.Id);
                 }
             }
             catch (Exception ex)
@@ -201,7 +205,8 @@ namespace WebApi.Controllers
                         fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
                         createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId,
-                        acceptBtc = x.AcceptBTC, acceptLtc = x.AcceptLTC, acceptEth = x.AcceptETH, acceptXmr = x.AcceptXMR
+                        acceptBTC = x.AcceptBTC, acceptLTC = x.AcceptLTC, acceptETH = x.AcceptETH, acceptXMR = x.AcceptXMR,
+                        recipient = x.Recipient
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
