@@ -122,7 +122,6 @@ namespace WebApi.Services
                         string currCode = setAddressParams.GetValue("CurrencyCode").ToObject<string>();
                         string addrr = setAddressParams.GetValue("Address").ToObject<string>();
                         int invoiceId = setAddressParams.GetValue("InvoiceId").ToObject<int>();
-                        string TxID = setAddressParams.GetValue("TXID").ToObject<string>();
 
                         using (DBEntities dbe = new DBEntities())
                         {
@@ -131,11 +130,9 @@ namespace WebApi.Services
                             {
                                 case "BTC":
                                     invoice.BTCAddress = addrr;
-                                    invoice.TransactionId = TxID;
                                     break;
                                 case "LTC":
                                     invoice.LTCAddress = addrr;
-                                    invoice.TransactionId = TxID;
                                     break;
                             }
                             dbe.Invoices.Update(invoice);

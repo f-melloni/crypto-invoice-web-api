@@ -13,6 +13,7 @@ using WebApi.Models.InvoiceAjaxModel;
 using WebApi.Services;
 using Microsoft.AspNetCore.Cors;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace WebApi.Controllers
 {
@@ -83,13 +84,12 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("api/invoices")]
-        public IActionResult CreateInvoice([FromBody]Invoice invoiceModel)
+        public IActionResult CreateInvoice([FromBody]Invoice invoiceModel, List<IFormFile> file)
         {
             try
             {
                 //current user logged in
                 var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
                 Invoice invoice = new Invoice();
                 using (DBEntities dbe = new DBEntities())
                 {
@@ -130,7 +130,8 @@ namespace WebApi.Controllers
                     }
                     dbe.SaveChanges();
 
-                    return Ok();
+              
+                        return Ok();
                 }
             }
             catch (Exception ex)
