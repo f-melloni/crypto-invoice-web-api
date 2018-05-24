@@ -153,9 +153,7 @@ namespace WebApi.Controllers
                         invoice.AcceptLTC = true;
                     }
                     dbe.SaveChanges();
-
-              
-                        return Ok();
+                    //Front end needs this new id to call GetInvoice
                     return Ok(invoice.Id);
                 }
             }
