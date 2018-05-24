@@ -11,9 +11,10 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DBEntities))]
-    partial class DBEntitiesModelSnapshot : ModelSnapshot
+    [Migration("20180523130355_InvoiceRecipientRequired")]
+    partial class InvoiceRecipientRequired
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -15,6 +15,12 @@ namespace WebApi.Database.Entities
         public string Name { get; set; }
         public string Description { get; set; }
 
+        /// <summary>
+        /// EMail of invoice recipient
+        /// </summary>
+        [Required]
+        public string Recipient { get; set; }
+
         public bool AcceptBTC { get; set; }
         public bool AcceptLTC { get; set; }
         public bool AcceptETH { get; set; }

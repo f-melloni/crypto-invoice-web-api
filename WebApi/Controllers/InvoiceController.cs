@@ -21,6 +21,8 @@ namespace WebApi.Controllers
     {
         [Route("api/invoices/{invoice_id}")]
         [HttpGet]
+        [Authorize]
+        [EnableCors("CorsPolicy")]
         public IActionResult GetInvoice(int invoice_id)
         {
             try
@@ -66,6 +68,7 @@ namespace WebApi.Controllers
                         invoice.NewFixER_XMR = invoiceModel.NewFixER_XMR;
             
                         dbe.Invoices.Update(invoice);
+                        dbe.SaveChanges();
                         return Ok();
                     }
                 }
@@ -82,7 +85,28 @@ namespace WebApi.Controllers
             }
         }
 
+        [Route("api/invoice/{id}")]
+        [HttpDelete]
+        [Authorize]
+        [EnableCors("CorsPolicy")]
+        public IActionResult deleteInvoice(int id)
+        {
+            //Delete only invoices belonging to the logged in user
+            var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            using (DBEntities dbe = new DBEntities())
+            {
+                var invoiceExists = dbe.Invoices.Any(i => i.Id == id && i.createdBy.Id == userId);
+                if (!invoiceExists)
+                    return NotFound();
+                dbe.Invoices.Remove(dbe.Invoices.Single(i => i.Id == id));
+                dbe.SaveChanges();
+                return Ok("{}");
+            }
+        }
+
         [HttpPost]
+        [Authorize]
+        [EnableCors("CorsPolicy")]
         [Route("api/invoices")]
         public IActionResult CreateInvoice([FromBody]Invoice invoiceModel, List<IFormFile> file)
         {
@@ -103,6 +127,7 @@ namespace WebApi.Controllers
                     invoice.FiatAmount = invoiceModel.FiatAmount;
                     invoice.FiatCurrencyCode = invoiceModel.FiatCurrencyCode;
                     invoice.state = 1;//not paid
+                    invoice.Recipient = invoiceModel.Recipient;
                     //invoice.NewFixER_BTC = invoiceModel.NewFixER_BTC;
                     //invoice.NewFixER_ETH = invoiceModel.NewFixER_ETH;
                     //invoice.NewFixER_LTC = invoiceModel.NewFixER_LTC;
@@ -111,14 +136,13 @@ namespace WebApi.Controllers
                     dbe.Invoices.Add(invoice);
                     dbe.SaveChanges();
 
-
-
                     //get the id and call create new address
                     if (invoiceModel.AcceptBTC){
                         RabbitMessages.GetNewAddress("BTC", invoice.Id,loggedUser.BTCXPUB);
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=BTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
                         var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
                         invoice.NewFixER_BTC = price;
+                        invoice.AcceptBTC = true;
                     }
                     if (invoiceModel.AcceptLTC)
                     {
@@ -126,12 +150,13 @@ namespace WebApi.Controllers
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=LTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
                         var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
                         invoice.NewFixER_LTC = price;
-
+                        invoice.AcceptLTC = true;
                     }
                     dbe.SaveChanges();
 
               
                         return Ok();
+                    return Ok(invoice.Id);
                 }
             }
             catch (Exception ex)
@@ -178,10 +203,12 @@ namespace WebApi.Controllers
                     // we do not want to send the User entity (settings, password hash etc.) with invoices
                     List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
                         id = x.Id, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
-                        ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state
-                        , fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
+                        ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
+                        fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
-                        createdBy = x.createdBy.Email
+                        createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId,
+                        acceptBTC = x.AcceptBTC, acceptLTC = x.AcceptLTC, acceptETH = x.AcceptETH, acceptXMR = x.AcceptXMR,
+                        recipient = x.Recipient
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
@@ -201,7 +228,7 @@ namespace WebApi.Controllers
         {
             //RabbitMessages.GetNewAddress("BTC", 9999);
             return Ok();
-
+                
         }
 
     }
