@@ -52,6 +52,7 @@ namespace WebApi.Database.Entities
         // File
         public string File { get; set; }
         public string FileName { get; set; }
+        public string FileMime { get; set; }
 
         //ER = exchange rate
      

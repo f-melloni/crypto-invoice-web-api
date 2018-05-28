@@ -13,23 +13,6 @@ using WebApi.Models.FileModels;
 
 namespace WebApi.Services
 {
-    public static class WebDAV
-    {
-        public static Attachment GetFile(string Url,string type)
-        {
-            var webRequest = WebRequest.Create(Url);
-
-            using (var response = webRequest.GetResponse())
-            using (var content = response.GetResponseStream())
-            {
-                Uri uri = new Uri(Url);
-                Attachment attachment = new Attachment(content,System.IO.Path.GetFileName(uri.LocalPath));
-                attachment.ContentType = new ContentType(type);
-                return attachment;
-            }      
-        }
-    }
-
     public class WebDAVClient
     {
         private readonly string hostName;
@@ -87,6 +70,20 @@ namespace WebApi.Services
         {
             HttpWebRequest httpWebRequest = this.CreateWebRequest(file, "DELETE");
             httpWebRequest.GetResponse();
+        }
+
+        public static byte[] GetFile(string Url)
+        {
+            var webRequest = WebRequest.Create(Url);
+            
+            using (var response = webRequest.GetResponse()) {
+                using (var contentStream = response.GetResponseStream()) {
+                    using(MemoryStream ms = new MemoryStream()) {
+                        contentStream.CopyTo(ms);
+                        return ms.ToArray();            
+                    }
+                }
+            }
         }
     }
 }

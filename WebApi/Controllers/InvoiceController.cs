@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using WebApi.Models.FileModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace WebApi.Controllers
 {
@@ -138,13 +139,18 @@ namespace WebApi.Controllers
 
                     // Proccess uploaded file
                     if(!string.IsNullOrEmpty(invoice.File)) {
+                        string[] fileInfo = invoice.File.Split(';');
+                        string mimeType = fileInfo[0].Split(':')[1];
+                        string fileContent = fileInfo[1].Split(',')[1];
+
                         FileData fileData = new FileData() {
-                            FileName = invoice.InvoiceGuid.ToString(),
-                            FileContent = Convert.FromBase64String(invoice.File.Split(',').Last())
+                            FileName = invoice.InvoiceGuid.ToString() + Path.GetExtension(invoice.FileMime),
+                            FileContent = Convert.FromBase64String(fileContent),
                         };
 
                         WebDAVClient client = new WebDAVClient(env, configuration);
                         invoice.File = client.UploadFile(fileData);
+                        invoice.FileMime = mimeType;
                     }
                     
                     dbe.Invoices.Add(invoice);
@@ -152,7 +158,7 @@ namespace WebApi.Controllers
 
                     //get the id and call create new address
                     if (invoice.AcceptBTC){
-                        RabbitMessages.GetNewAddress("BTC", invoice.Id,loggedUser.BTCXPUB);
+                        RabbitMessages.GetNewAddress("BTC", invoice.Id, loggedUser.BTCXPUB);
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=BTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
                         var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
                         invoice.NewFixER_BTC = price;
@@ -167,6 +173,24 @@ namespace WebApi.Controllers
                         invoice.AcceptLTC = true;
                     }
                     dbe.SaveChanges();
+
+                    // send info e-mail
+                    string invoiceUrl = string.Format("{0}/invoice/{1}",
+                            env.IsDevelopment() ? configuration["FrontEndHostName:Development"] : configuration["FrontEndHostName:Production"],
+                            invoice.InvoiceGuid);
+
+                    string subject = $"New invoice from {loggedUser.UserName}";
+                    string attachment = $"{invoice.File}|{invoice.FileName}|{invoice.FileMime}";
+                    string body = System.IO.File.ReadAllText("Views/Email/invoice.html");
+                    body = body.Replace("{User.Name}", loggedUser.UserName)
+                               .Replace("{Invoice.Name}", invoice.Name)
+                               .Replace("{Invoice.Description}", invoice.Description)
+                               .Replace("{URL}", invoiceUrl);
+
+                    EmailSender sender = new EmailSender(configuration);
+                    Email email = sender.CreateEmailEntity("info@octupus.com", invoice.Recipient, body, subject, attachment);
+
+                    sender.AddEmailToQueue(email);
 
                     //Front end needs this new id to call GetInvoice
                     return Ok(invoice.Id);
