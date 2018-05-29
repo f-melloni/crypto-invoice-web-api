@@ -34,7 +34,6 @@ namespace WebApi.Controllers
 
         [Route("api/invoices/{invoice_id}")]
         [HttpGet]
-        [Authorize]
         [EnableCors("CorsPolicy")]
         public IActionResult GetInvoice(int invoice_id)
         {
@@ -267,7 +266,7 @@ namespace WebApi.Controllers
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
                         createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId,
                         acceptBTC = x.AcceptBTC, acceptLTC = x.AcceptLTC, acceptETH = x.AcceptETH, acceptXMR = x.AcceptXMR,
-                        recipient = x.Recipient
+                        recipient = x.Recipient, invoiceGuid = x.InvoiceGuid, fileUrl = x.File, fileName = x.FileName
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */

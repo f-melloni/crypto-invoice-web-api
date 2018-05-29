@@ -6,84 +6,102 @@
 @using WebApi.Models.AccountViewModels
 @model LoginViewModel
 @inject SignInManager<User> SignInManager
-
 @{
     ViewData["Title"] = "Log in";
+    Layout = "_LoginLayout";
 }
 
-<h2>@ViewData["Title"]</h2>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                <h4>Use a local account to log in.</h4>
-                <hr />
-                <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group">
-                    <label asp-for="Email"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Password"></label>
-                    <input asp-for="Password" class="form-control" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <div class="checkbox">
-                        <label asp-for="RememberMe">
-                            <input asp-for="RememberMe" />
-                            @Html.DisplayNameFor(m => m.RememberMe)
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-default">Log in</button>
-                </div>
-                <div class="form-group">
-                    <p>
-                        <a asp-action="ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">Register as a new user?</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h4>Use another service to log in.</h4>
-            <hr />
-            @{
-                var loginProviders = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-                if (loginProviders.Count == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See <a href="https://go.microsoft.com/fwlink/?LinkID=532715">this article</a>
-                            for details on setting up this ASP.NET application to support logging in via external services.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in loginProviders)
-                                {
-                                    <button type="submit" class="btn btn-default" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.Name</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
-    </div>
-</div>
+<v-container fluid>
+    <v-layout row>
+        <v-flex xs12 sm6 offset-sm3>
+            <v-card class="mb-2">
+                <v-card-text>
+                    <h1>@ViewData["Title"]</h1>
+                </v-card-text>
+            </v-card>
+        </v-flex>
+    </v-layout>
+
+    <v-form ref="form" v-model="valid" method="post" action="/Account/Login?returnUrl=@ViewData["ReturnUrl"]">
+        <v-layout row>
+            <v-flex xs12 sm6 offset-sm3>
+                <v-card class="mb-2">
+                    <v-card-title>
+                        <h2>Use a local account to log in...</h2>
+                    </v-card-title>
+                    <v-card-text>
+                        <div class="alert error" asp-validation-summary="ModelOnly"></div>
+                        
+                        <v-layout row>
+                            <v-flex xs12>
+                                <v-text-field required type="email" label="E-mail" name="Email" v-model="model.Email" :rules="[rules.notEmpty, rules.email]"></v-text-field>
+                            </v-flex>
+                        </v-layout>
+                        <v-layout row>
+                            <v-flex xs12>
+                                <v-text-field required type="password" label="Password" name="Password" :rules="[rules.notEmpty]"></v-text-field>
+                            </v-flex>
+                        </v-layout>
+                        <v-layout row>
+                            <v-flex xs2>
+                                <v-checkbox value="true" color="orange" label="Remember me" v-model="model.RememberMe" name="RememberMe"></v-checkbox>
+                            </v-flex>
+                            <v-spacer></v-spacer>
+                        </v-layout>
+                    </v-card-text>
+                </v-card>
+            </v-flex>
+        </v-layout>
+        <v-layout row>
+            <v-flex xs12 sm6 offset-sm3>
+                <v-card class="mb-2">
+                    <v-card-text>
+                        <v-layout row>
+                            <v-btn @@click="submit" :disabled="!valid" color="primary">Log in</v-btn>
+                            <div class="spacer"></div>
+                            <v-btn href="/Account/ForgotPassword" class="px-3 mr-4">Lost password?</v-btn>
+                            <v-btn href="/Account/Register?returnUrl=@ViewData["ReturnUrl"]" class="px-3">Create account</v-btn>
+                        </v-layout>
+                    </v-card-text>
+                </v-card>
+            </v-flex>
+        </v-layout>
+        <div class="d-none">
+            <input asp-for="RememberMe" />
+            @Html.AntiForgeryToken()
+        </div>
+    </v-form>
+</v-container>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        new Vue({
+            el: '#app',
+            data: () => ({
+                valid: false,
+                model: {
+                    Email: '',
+                    Password: '',
+                    RememberMe: false
+                },
+                rules: {
+                    email: (value) => {
+                        const pattern = /^(([^<>()[\]\\.,;:\s@@"]+(\.[^<>()[\]\\.,;:\s@@"]+)*)|(".+"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                        return pattern.test(value) || 'Invalid e-mail.'
+                    },
+                    notEmpty: (value) => {
+                        return (value || '').length > 0 || 'This field is required';
+                    }
+                }
+            }),
+            methods: {
+                submit () {
+                    if(this.$refs.form.validate()) {
+                        $('input[name=RememberMe]').prop('checked', this.model.RememberMe);
+                        $(this.$refs.form.$el).submit();
+                    }
+                }
+            }
+        });
+    </script>
 }
