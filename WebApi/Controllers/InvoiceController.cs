@@ -215,7 +215,7 @@ namespace WebApi.Controllers
                     sender.AddEmailToQueue(email);
 
                     //Front end needs this new id to call GetInvoice
-                    return Ok(invoice.Id);
+                    return Ok(invoice.InvoiceGuid);
                 }
             }
             catch (Exception ex)
