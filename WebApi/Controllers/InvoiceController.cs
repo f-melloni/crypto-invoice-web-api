@@ -14,11 +14,24 @@ using WebApi.Services;
 using Microsoft.AspNetCore.Cors;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Http;
+using WebApi.Models.FileModels;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace WebApi.Controllers
 {
     public class InvoiceController : Controller
     {
+        private readonly IHostingEnvironment env;
+        private readonly IConfiguration configuration;
+
+        public InvoiceController(IHostingEnvironment _env, IConfiguration _configuration)
+        {
+            env = _env;
+            configuration = _configuration;
+        }
+
         [Route("api/invoices/{invoice_id}")]
         [HttpGet]
         [Authorize]
@@ -108,43 +121,50 @@ namespace WebApi.Controllers
         [Authorize]
         [EnableCors("CorsPolicy")]
         [Route("api/invoices")]
-        public IActionResult CreateInvoice([FromBody]Invoice invoiceModel, List<IFormFile> file)
+        public IActionResult CreateInvoice([FromBody]Invoice invoice, List<IFormFile> file)
         {
             try
             {
                 //current user logged in
                 var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                Invoice invoice = new Invoice();
                 using (DBEntities dbe = new DBEntities())
                 {
                     User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
 
                     invoice.createdBy = dbe.Users.SingleOrDefault(u => u.Id == userId);
                     invoice.DateCreated = DateTime.UtcNow;
+                    invoice.InvoiceGuid = Guid.NewGuid();
 
-                    invoice.Name = invoiceModel.Name;
-                    invoice.Description = invoiceModel.Description;
-                    invoice.FiatAmount = invoiceModel.FiatAmount;
-                    invoice.FiatCurrencyCode = invoiceModel.FiatCurrencyCode;
                     invoice.state = 1;//not paid
-                    invoice.Recipient = invoiceModel.Recipient;
-                    //invoice.NewFixER_BTC = invoiceModel.NewFixER_BTC;
-                    //invoice.NewFixER_ETH = invoiceModel.NewFixER_ETH;
-                    //invoice.NewFixER_LTC = invoiceModel.NewFixER_LTC;
-                    //invoice.NewFixER_XMR = invoiceModel.NewFixER_XMR;
-         
+
+                    // Proccess uploaded file
+                    if(!string.IsNullOrEmpty(invoice.File)) {
+                        string[] fileInfo = invoice.File.Split(';');
+                        string mimeType = fileInfo[0].Split(':')[1];
+                        string fileContent = fileInfo[1].Split(',')[1];
+
+                        FileData fileData = new FileData() {
+                            FileName = invoice.InvoiceGuid.ToString() + Path.GetExtension(invoice.FileMime),
+                            FileContent = Convert.FromBase64String(fileContent),
+                        };
+
+                        WebDAVClient client = new WebDAVClient(env, configuration);
+                        invoice.File = client.UploadFile(fileData);
+                        invoice.FileMime = mimeType;
+                    }
+                    
                     dbe.Invoices.Add(invoice);
                     dbe.SaveChanges();
 
                     //get the id and call create new address
-                    if (invoiceModel.AcceptBTC){
-                        RabbitMessages.GetNewAddress("BTC", invoice.Id,loggedUser.BTCXPUB);
+                    if (invoice.AcceptBTC){
+                        RabbitMessages.GetNewAddress("BTC", invoice.Id, loggedUser.BTCXPUB);
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=BTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
                         var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
                         invoice.NewFixER_BTC = price;
                         invoice.AcceptBTC = true;
                     }
-                    if (invoiceModel.AcceptLTC)
+                    if (invoice.AcceptLTC)
                     {
                         RabbitMessages.GetNewAddress("LTC", invoice.Id, loggedUser.LTCXPUB);
                         string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=LTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
@@ -154,8 +174,25 @@ namespace WebApi.Controllers
                     }
                     dbe.SaveChanges();
 
-              
-                        return Ok();
+                    // send info e-mail
+                    string invoiceUrl = string.Format("{0}/invoice/{1}",
+                            env.IsDevelopment() ? configuration["FrontEndHostName:Development"] : configuration["FrontEndHostName:Production"],
+                            invoice.InvoiceGuid);
+
+                    string subject = $"New invoice from {loggedUser.UserName}";
+                    string attachment = $"{invoice.File}|{invoice.FileName}|{invoice.FileMime}";
+                    string body = System.IO.File.ReadAllText("Views/Email/invoice.html");
+                    body = body.Replace("{User.Name}", loggedUser.UserName)
+                               .Replace("{Invoice.Name}", invoice.Name)
+                               .Replace("{Invoice.Description}", invoice.Description)
+                               .Replace("{URL}", invoiceUrl);
+
+                    EmailSender sender = new EmailSender(configuration);
+                    Email email = sender.CreateEmailEntity("info@octupus.com", invoice.Recipient, body, subject, attachment);
+
+                    sender.AddEmailToQueue(email);
+
+                    //Front end needs this new id to call GetInvoice
                     return Ok(invoice.Id);
                 }
             }

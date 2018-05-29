@@ -16,6 +16,7 @@ using WebApi.Services;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using System.Diagnostics;
 
 namespace WebApi
 {
@@ -29,7 +30,6 @@ namespace WebApi
         public Startup(IConfiguration configuration,IHostingEnvironment env)
         {
             Configuration = configuration;
-            RabbitMessenger.Setup(configuration);
             
             CurrentEnv = env;
             ConnectionString = CurrentEnv.IsDevelopment()
@@ -41,8 +41,6 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-           
-
             services.AddDbContext<DBEntities>(options => options.UseMySql(ConnectionString, b => b.MigrationsAssembly("WebApi")));
             services.AddIdentity<User, IdentityRole>(config =>
             {
@@ -103,7 +101,6 @@ namespace WebApi
             app.UseExceptionHandler("/api/Error/HandlingException");
 
             app.UseStaticFiles();
-
             app.UseAuthentication();
 
             app.UseMvc(routes =>
@@ -112,6 +109,15 @@ namespace WebApi
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            // Check if Starup is invoked by entityFramework and if so we can't continue because of infinite loop in Observer
+            StackTrace stackTrace = new StackTrace();
+            List<string> efMethods = new List<string>() { "RemoveMigration", "AddMigration", "UpdateDatabase" };
+            if (stackTrace.GetFrames().Any(f => efMethods.Contains(f.GetMethod().Name))) {
+                return;
+            }
+
+            RabbitMessenger.Setup(Configuration);
         }
     }
 }

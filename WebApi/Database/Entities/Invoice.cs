@@ -12,6 +12,7 @@ namespace WebApi.Database.Entities
         [Required]
         public int Id { get; set; }
 
+        public Guid InvoiceGuid { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
@@ -47,6 +48,11 @@ namespace WebApi.Database.Entities
         public int state { get; set; }
         public string FiatCurrencyCode { get; set; }
         public double FiatAmount { get; set; }
+
+        // File
+        public string File { get; set; }
+        public string FileName { get; set; }
+        public string FileMime { get; set; }
 
         //ER = exchange rate
      
