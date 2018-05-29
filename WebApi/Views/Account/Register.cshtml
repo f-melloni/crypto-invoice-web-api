@@ -3,36 +3,93 @@
 @model RegisterViewModel
 @{
     ViewData["Title"] = "Register";
+    Layout = "_LoginLayout";
 }
 
-<h2>@ViewData["Title"]</h2>
+<v-container fluid>
+    <v-layout row>
+        <v-flex xs12 sm6 offset-sm3>
+            <v-card class="mb-2">
+                <v-card-text>
+                    <h1>@ViewData["Title"]</h1>
+                </v-card-text>
+            </v-card>
+        </v-flex>
+    </v-layout>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-            <h4>Create a new account.</h4>
-            <hr />
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Email"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Password"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ConfirmPassword"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button type="submit" class="btn btn-default">Register</button>
-        </form>
-    </div>
-</div>
+    <v-form ref="form" v-model="valid" method="post" action="/Account/Register?returnUrl=@ViewData["ReturnUrl"]">
+        <v-layout row>
+            <v-flex xs12 sm6 offset-sm3>
+                <v-card class="mb-2">
+                    <v-card-title>
+                        <h2>Create a new account...</h2>
+                    </v-card-title>
+                    <v-card-text>
+                        <div class="alert error" asp-validation-summary="ModelOnly"></div>
+
+                        <v-layout row>
+                            <v-flex xs12>
+                                <v-text-field required type="email" label="E-mail" name="Email" v-model="model.Email" :rules="[rules.notEmpty, rules.email]"></v-text-field>
+                            </v-flex>
+                        </v-layout>
+                        <v-layout row wrap>
+                            <v-flex xs12 sm6 pr-2>
+                                <v-text-field required type="password" label="Password" name="Password" :rules="[rules.notEmpty]"></v-text-field>
+                            </v-flex>
+                            <v-flex xs12 sm6 pl-2>
+                                <v-text-field required type="password" label="Confirm password" name="ConfirmPassword" :rules="[rules.notEmpty]"></v-text-field>
+                            </v-flex>
+                        </v-layout>
+                    </v-card-text>
+                </v-card>
+            </v-flex>
+        </v-layout>
+        <v-layout row>
+            <v-flex xs12 sm6 offset-sm3>
+                <v-card class="mb-2">
+                    <v-card-text>
+                        <v-layout row>
+                            <v-btn @@click="submit" :disabled="!valid" color="primary">Register</v-btn>
+                            <div class="spacer"></div>
+                            <v-btn href="/Account/ForgotPassword" class="px-3 mr-4">Lost password?</v-btn>
+                            <v-btn href="/Account/Login?returnUrl=@ViewData["ReturnUrl"]" class="px-3">Log in</v-btn>
+                        </v-layout>
+                    </v-card-text>
+                </v-card>
+            </v-flex>
+        </v-layout>
+        @Html.AntiForgeryToken()
+    </v-form>
+</v-container>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        new Vue({
+            el: '#app',
+            data: () => ({
+                valid: false,
+                model: {
+                    Email: '',
+                    Password: '',
+                    ConfirmPassword: ''
+                },
+                rules: {
+                    email: (value) => {
+                        const pattern = /^(([^<>()[\]\\.,;:\s@@"]+(\.[^<>()[\]\\.,;:\s@@"]+)*)|(".+"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                        return pattern.test(value) || 'Invalid e-mail.'
+                    },
+                    notEmpty: (value) => {
+                        return (value || '').length > 0 || 'This field is required';
+                    }
+                }
+            }),
+            methods: {
+                submit () {
+                    if(this.$refs.form.validate()) {
+                        $(this.$refs.form.$el).submit();
+                    }
+                }
+            }
+        });
+    </script>
 }
