@@ -260,7 +260,7 @@ namespace WebApi.Controllers
                     var displayName = loggedUser.UserName;
                     // we do not want to send the User entity (settings, password hash etc.) with invoices
                     List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
-                        invoiceGuid = x.InvoiceGuid, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
+                        name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
                         ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
                         fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
