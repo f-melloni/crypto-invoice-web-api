@@ -92,7 +92,7 @@ namespace WebApi.Services
                                 case "BTC":
                                     Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
                                     double btcAmountRequired = invoiceBTC.FiatAmount/(double)invoiceBTC.NewFixER_BTC ;
-                                    if (amount >=  btcAmountRequired )
+                                    if (amount >=  btcAmountRequired && invoiceBTC.state == 1 )
                                     {
                                         invoiceBTC.state = 2;
                                     }
@@ -101,7 +101,7 @@ namespace WebApi.Services
                                 case "LTC":
                                     Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address);
                                     double ltcAmountRequired = invoiceLTC.FiatAmount/(double)invoiceLTC.NewFixER_LTC;
-                                    if (amount >= ltcAmountRequired)
+                                    if (amount >= ltcAmountRequired && invoiceLTC.state == 1)
                                     {
                                         invoiceLTC.state = 2;
                                     }
