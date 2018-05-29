@@ -14,7 +14,6 @@ namespace WebApi.Database
 
         public virtual DbSet<Invoice> Invoices { get; set; }
         public virtual DbSet<Email> Emails { get; set; }
-        public virtual DbSet<LogItem> LogItems { get; set; }
 
         public DBEntities(DbContextOptions<DBEntities> options) : base(options)
         {
