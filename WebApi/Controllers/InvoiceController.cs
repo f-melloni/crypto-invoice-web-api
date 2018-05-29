@@ -55,6 +55,28 @@ namespace WebApi.Controllers
             }
         }
 
+        [Route("api/invoices/{invoice_guid}")]
+        [HttpGet]
+        [EnableCors("CorsPolicy")]
+        public IActionResult GetInvoice(string invoice_guid)
+        {
+            try
+            {
+                using (DBEntities dbe = new DBEntities())
+                {
+                    Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.InvoiceGuid.ToString() == invoice_guid); //get the invoice
+                    if (invoice != null)
+                        return Ok(invoice);
+                    else
+                        return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         [Route("api/invoices/{invoice_id}")]
         [HttpPut]
         [Authorize]
@@ -239,7 +261,7 @@ namespace WebApi.Controllers
                     var displayName = loggedUser.UserName;
                     // we do not want to send the User entity (settings, password hash etc.) with invoices
                     List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
-                        id = x.Id, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
+                        invoiceGuid = x.InvoiceGuid, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
                         ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
                         fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
