@@ -120,20 +120,20 @@ namespace WebApi.Controllers
             }
         }
 
-        [Route("api/invoice/{id}")]
+        [Route("api/invoice/{guid}")]
         [HttpDelete]
         [Authorize]
         [EnableCors("CorsPolicy")]
-        public IActionResult deleteInvoice(int id)
+        public IActionResult deleteInvoice(string guid)
         {
             //Delete only invoices belonging to the logged in user
             var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             using (DBEntities dbe = new DBEntities())
             {
-                var invoiceExists = dbe.Invoices.Any(i => i.Id == id && i.createdBy.Id == userId);
+                var invoiceExists = dbe.Invoices.Any(i => i.InvoiceGuid.ToString() == guid && i.createdBy.Id == userId);
                 if (!invoiceExists)
                     return NotFound();
-                dbe.Invoices.Remove(dbe.Invoices.Single(i => i.Id == id));
+                dbe.Invoices.Remove(dbe.Invoices.Single(i => i.InvoiceGuid.ToString() == guid));
                 dbe.SaveChanges();
                 return Ok("{}");
             }
