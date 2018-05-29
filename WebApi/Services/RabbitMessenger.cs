@@ -72,7 +72,7 @@ namespace WebApi.Services
         public static void ParseMessage(JToken message)
         {
             //we need to check if the message is type of rpcReq or rpcResponse
-            string method = message["method"].ToString().ToLower();
+            string method = message["method"].ToString();
             if (!String.IsNullOrEmpty(method))
             {
                 switch (method)
@@ -83,7 +83,7 @@ namespace WebApi.Services
                         string currencyCode = transactionSeenParams.GetValue("CurrencyCode").ToObject<string>();
                         string address = transactionSeenParams.GetValue("Address").ToObject<string>();
                         double amount = transactionSeenParams.GetValue("Amount").ToObject<double>();
-                        DateTime timeStamp = transactionSeenParams.GetValue("Timestamp").ToObject<DateTime>();
+                        //DateTime timeStamp = transactionSeenParams.GetValue("Timestamp").ToObject<DateTime>();
 
                         //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
                         using (DBEntities dbe = new DBEntities()) {
@@ -91,17 +91,17 @@ namespace WebApi.Services
                             {
                                 case "BTC":
                                     Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
-                                    double btcAmountRequired = (double)invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount;
-                                    if (btcAmountRequired >= amount)
+                                    double btcAmountRequired = invoiceBTC.FiatAmount/(double)invoiceBTC.NewFixER_BTC ;
+                                    if (amount >=  btcAmountRequired )
                                     {
                                         invoiceBTC.state = 2;
                                     }
                                     dbe.Invoices.Update(invoiceBTC);
                                     break;
                                 case "LTC":
-                                    Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
-                                    double ltcAmountRequired = (double)invoiceLTC.NewFixER_LTC / invoiceLTC.FiatAmount;
-                                    if (ltcAmountRequired >= amount)
+                                    Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address);
+                                    double ltcAmountRequired = invoiceLTC.FiatAmount/(double)invoiceLTC.NewFixER_LTC;
+                                    if (amount >= ltcAmountRequired)
                                     {
                                         invoiceLTC.state = 2;
                                     }
@@ -121,7 +121,7 @@ namespace WebApi.Services
                         JObject setAddressParams = message["params"].ToObject<JObject>();
                         string currCode = setAddressParams.GetValue("CurrencyCode").ToObject<string>();
                         string addrr = setAddressParams.GetValue("Address").ToObject<string>();
-                        int invoiceId = setAddressParams.GetValue("InvoiceId").ToObject<int>();
+                        int invoiceId = setAddressParams.GetValue("InvoiceID").ToObject<int>();
 
                         using (DBEntities dbe = new DBEntities())
                         {
@@ -152,7 +152,7 @@ namespace WebApi.Services
                             {
                                 case "BTC":
                                     Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address_);
-                                    if (invoiceBTC.NewFixER_BTC / invoiceBTC.FiatAmount <= amount_)
+                                    if (invoiceBTC.FiatAmount/invoiceBTC.NewFixER_BTC <= amount_)
                                     {
                                         invoiceBTC.state = 3;
                                         invoiceBTC.TransactionId = TxID_;
@@ -161,7 +161,7 @@ namespace WebApi.Services
                                     break;
                                 case "LTC":
                                     Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address_);
-                                    if (invoiceLTC.NewFixER_BTC / invoiceLTC.FiatAmount <= amount_)
+                                    if (invoiceLTC.FiatAmount/invoiceLTC.NewFixER_LTC <= amount_)
                                     {
                                         invoiceLTC.TransactionId = TxID_;
                                         invoiceLTC.state = 3;

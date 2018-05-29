@@ -227,6 +227,7 @@ namespace WebApi.Controllers
         public IActionResult testShit()
         {
             //RabbitMessages.GetNewAddress("BTC", 9999);
+            RabbitMessages.GetNewAddress("LTC", 5, "xpub6BniSA9guaoGwZ2ZDUQbZccYStms1jPzG5ezGvRaiqJu4vMpy8iZPbbv2QK6bTBDjj3vyt5gVwzKa1kC3ghD1AUokJH9BDmY4snWn5WnHyZ");
             return Ok();
                 
         }
