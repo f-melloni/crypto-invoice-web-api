@@ -143,75 +143,94 @@ namespace WebApi.Controllers
         {
             try
             {
-                //current user logged in
-                var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                using (DBEntities dbe = new DBEntities())
+                if (ModelState.IsValid)
                 {
-                    User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
-
-                    invoice.createdBy = dbe.Users.SingleOrDefault(u => u.Id == userId);
-                    invoice.DateCreated = DateTime.UtcNow;
-                    invoice.InvoiceGuid = Guid.NewGuid();
-
-                    invoice.state = 1;//not paid
-
-                    // Proccess uploaded file
-                    if(!string.IsNullOrEmpty(invoice.File)) {
-                        string[] fileInfo = invoice.File.Split(';');
-                        string mimeType = fileInfo[0].Split(':')[1];
-                        string fileContent = fileInfo[1].Split(',')[1];
-
-                        FileData fileData = new FileData() {
-                            FileName = invoice.InvoiceGuid.ToString() + Path.GetExtension(invoice.FileMime),
-                            FileContent = Convert.FromBase64String(fileContent),
-                        };
-
-                        WebDAVClient client = new WebDAVClient(env, configuration);
-                        invoice.File = client.UploadFile(fileData);
-                        invoice.FileMime = mimeType;
-                    }
-                    
-                    dbe.Invoices.Add(invoice);
-                    dbe.SaveChanges();
-
-                    //get the id and call create new address
-                    if (invoice.AcceptBTC){
-                        RabbitMessages.GetNewAddress("BTC", invoice.Id, loggedUser.BTCXPUB);
-                        string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=BTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
-                        var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
-                        invoice.NewFixER_BTC = price;
-                        invoice.AcceptBTC = true;
-                    }
-                    if (invoice.AcceptLTC)
+                    //current user logged in
+                    var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    using (DBEntities dbe = new DBEntities())
                     {
-                        RabbitMessages.GetNewAddress("LTC", invoice.Id, loggedUser.LTCXPUB);
-                        string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=LTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
-                        var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
-                        invoice.NewFixER_LTC = price;
-                        invoice.AcceptLTC = true;
+                        User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
+
+                        invoice.createdBy = dbe.Users.SingleOrDefault(u => u.Id == userId);
+                        invoice.DateCreated = DateTime.UtcNow;
+                        invoice.InvoiceGuid = Guid.NewGuid();
+
+                        invoice.state = 1;//not paid
+
+                        // Proccess uploaded file
+                        if (!string.IsNullOrEmpty(invoice.File))
+                        {
+                            string[] fileInfo = invoice.File.Split(';');
+                            string mimeType = fileInfo[0].Split(':')[1];
+                            string fileContent = fileInfo[1].Split(',')[1];
+
+                            FileData fileData = new FileData()
+                            {
+                                FileName = invoice.InvoiceGuid.ToString() + Path.GetExtension(invoice.FileMime),
+                                FileContent = Convert.FromBase64String(fileContent),
+                            };
+
+                            WebDAVClient client = new WebDAVClient(env, configuration);
+                            invoice.File = client.UploadFile(fileData);
+                            invoice.FileMime = mimeType;
+                        }
+
+                        dbe.Invoices.Add(invoice);
+                        dbe.SaveChanges();
+
+                        //get the id and call create new address
+                        if (invoice.AcceptBTC)
+                        {
+                            RabbitMessages.GetNewAddress("BTC", invoice.Id, loggedUser.BTCXPUB);
+                            string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=BTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
+                            var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+                            invoice.NewFixER_BTC = price;
+                            invoice.AcceptBTC = true;
+                        }
+                        if (invoice.AcceptLTC)
+                        {
+                            RabbitMessages.GetNewAddress("LTC", invoice.Id, loggedUser.LTCXPUB);
+                            string apiUrl = "https://min-api.cryptocompare.com/data/generateAvg?fsym=LTC&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
+                            var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+                            invoice.NewFixER_LTC = price;
+                            invoice.AcceptLTC = true;
+                        }
+                        dbe.SaveChanges();
+
+                        // send info e-mail
+                        string invoiceUrl = string.Format("{0}/invoice/{1}",
+                                env.IsDevelopment() ? configuration["FrontEndHostName:Development"] : configuration["FrontEndHostName:Production"],
+                                invoice.InvoiceGuid);
+
+                        string subject = $"New invoice from {loggedUser.UserName}";
+                        string attachment = $"{invoice.File}|{invoice.FileName}|{invoice.FileMime}";
+                        string body = System.IO.File.ReadAllText("Views/Email/invoice.html");
+                        body = body.Replace("{User.Name}", loggedUser.UserName)
+                                   .Replace("{Invoice.Name}", invoice.Name)
+                                   .Replace("{Invoice.Description}", invoice.Description)
+                                   .Replace("{URL}", invoiceUrl);
+
+                        EmailSender sender = new EmailSender(configuration);
+                        Email email = sender.CreateEmailEntity("info@octupus.com", invoice.Recipient, body, subject, attachment);
+
+                        sender.AddEmailToQueue(email);
+
+                        //Front end needs this new id to call GetInvoice
+                        return Ok(invoice.InvoiceGuid);
                     }
-                    dbe.SaveChanges();
-
-                    // send info e-mail
-                    string invoiceUrl = string.Format("{0}/invoice/{1}",
-                            env.IsDevelopment() ? configuration["FrontEndHostName:Development"] : configuration["FrontEndHostName:Production"],
-                            invoice.InvoiceGuid);
-
-                    string subject = $"New invoice from {loggedUser.UserName}";
-                    string attachment = $"{invoice.File}|{invoice.FileName}|{invoice.FileMime}";
-                    string body = System.IO.File.ReadAllText("Views/Email/invoice.html");
-                    body = body.Replace("{User.Name}", loggedUser.UserName)
-                               .Replace("{Invoice.Name}", invoice.Name)
-                               .Replace("{Invoice.Description}", invoice.Description)
-                               .Replace("{URL}", invoiceUrl);
-
-                    EmailSender sender = new EmailSender(configuration);
-                    Email email = sender.CreateEmailEntity("info@octupus.com", invoice.Recipient, body, subject, attachment);
-
-                    sender.AddEmailToQueue(email);
-
-                    //Front end needs this new id to call GetInvoice
-                    return Ok(invoice.InvoiceGuid);
+                }
+                else
+                {
+                    var query = from state in ModelState.Values
+                                from error in state.Errors
+                                select error.ErrorMessage;
+                    var errors = query.ToList();
+                    string allErrors = "";
+                    foreach (string error in errors)
+                    {
+                        allErrors += error + "\n";
+                    }
+                    return BadRequest(allErrors);
                 }
             }
             catch (Exception ex)

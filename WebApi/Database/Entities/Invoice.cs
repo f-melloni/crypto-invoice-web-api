@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApi.Services;
 
 namespace WebApi.Database.Entities
 {
@@ -13,14 +14,30 @@ namespace WebApi.Database.Entities
         public int Id { get; set; }
 
         public Guid InvoiceGuid { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        [Required]
+        private string _name;
+        [Required]
+        private string _recipient;
+        [Required]
+        private string _fiatCurrCode;
+        [Required]
+        public string Name
+        {
+            get { return this._name; }
+            set { _name = HtmlUtil.CutHtml(value); }
+        }
 
+        public string Description { get; set; }
+    
         /// <summary>
         /// EMail of invoice recipient
         /// </summary>
         [Required]
-        public string Recipient { get; set; }
+        public string Recipient
+        {
+            get { return this._recipient; }
+            set { _recipient = HtmlUtil.CutHtml(value); }
+        }
 
         public bool AcceptBTC { get; set; }
         public bool AcceptLTC { get; set; }
@@ -46,7 +63,14 @@ namespace WebApi.Database.Entities
         public User createdBy { get; set; }
 
         public int state { get; set; }
-        public string FiatCurrencyCode { get; set; }
+        [Required]
+        public string FiatCurrencyCode
+        {
+            get { return this._fiatCurrCode; }
+            set { _fiatCurrCode = HtmlUtil.CutHtml(value); }
+        }
+
+        [Required]
         public double FiatAmount { get; set; }
 
         // File
