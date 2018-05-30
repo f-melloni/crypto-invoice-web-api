@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
@@ -249,7 +250,7 @@ namespace WebApi.Controllers
                     User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
                     var displayName = loggedUser.UserName;
 
-                    List<Invoice> invoiceList = dbe.Invoices.Where(i => i.CreatedBy.Id == userId).ToList();
+                    List<Invoice> invoiceList = dbe.Invoices.Include("PaymentsAvailable").Where(i => i.CreatedBy.Id == userId).ToList();
                     List<JObject> invoices = new List<JObject>();
                     foreach (Invoice item in invoiceList) {
                         JObject invoice = new JObject() {
