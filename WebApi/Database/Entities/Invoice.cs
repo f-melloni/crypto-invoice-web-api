@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApi.Services;
 
 namespace WebApi.Database.Entities
 {
@@ -13,19 +14,39 @@ namespace WebApi.Database.Entities
 
     public class Invoice
     {
+        private string _name;
+        private string _recipient;
+        private string _fiatCurrCode;
+        private string _description;
+
         [Key]
         [Required]
         public int Id { get; set; }
 
         public Guid InvoiceGuid { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
 
+        [Required]
+        public string Name
+        {
+            get { return _name; }
+            set { _name = HtmlUtil.CutHtml(value); }
+        }
+
+        public string Description
+        {
+            get { return _description; }
+            set { _description = HtmlUtil.CutHtml(value); }
+        }
+    
         /// <summary>
         /// EMail of invoice recipient
         /// </summary>
         [Required]
-        public string Recipient { get; set; }
+        public string Recipient
+        {
+            get { return _recipient; }
+            set { _recipient = HtmlUtil.CutHtml(value); }
+        }
 
         /// <summary>
         /// Transaction ID of payment
@@ -42,7 +63,15 @@ namespace WebApi.Database.Entities
         public User CreatedBy { get; set; }
 
         public int State { get; set; }
-        public string FiatCurrencyCode { get; set; }
+
+        [Required]
+        public string FiatCurrencyCode
+        {
+            get { return _fiatCurrCode; }
+            set { _fiatCurrCode = HtmlUtil.CutHtml(value); }
+        }
+        
+        [Required]
         public double FiatAmount { get; set; }
 
         // File
