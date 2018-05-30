@@ -50,6 +50,15 @@ namespace WebApi
             }).AddEntityFrameworkStores<DBEntities>()
                 .AddDefaultTokenProviders();
 
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+            });
+
             CurrencyConfiguration currencyConfiguration = Configuration.GetSection("CurrencyConfiguration").Get<CurrencyConfiguration>();
             services.AddSingleton(currencyConfiguration);
             
