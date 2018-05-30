@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Database.Entities;
-using WebApi.Models.UserSettingsAjaxModel;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using WebApi.Database;
-using Microsoft.EntityFrameworkCore;
+using WebApi.Database.Entities;
+using WebApi.Models.FileModels;
 using WebApi.Models.InvoiceAjaxModel;
 using WebApi.Services;
-using Microsoft.AspNetCore.Cors;
-using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Http;
-using WebApi.Models.FileModels;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace WebApi.Controllers
 {

@@ -22,13 +22,10 @@
 
   <ItemGroup>
     <None Include="Views\Account\AccessDenied.cshtml" />
-    <None Include="Views\Account\ConfirmEmail.cshtml" />
-    <None Include="Views\Account\ExternalLogin.cshtml" />
     <None Include="Views\Account\ForgotPassword.cshtml" />
     <None Include="Views\Account\ForgotPasswordConfirmation.cshtml" />
     <None Include="Views\Account\Lockout.cshtml" />
     <None Include="Views\Account\Login.cshtml" />
-    <None Include="Views\Account\LoginWith2fa.cshtml" />
     <None Include="Views\Account\LoginWithRecoveryCode.cshtml" />
     <None Include="Views\Account\Register.cshtml" />
     <None Include="Views\Account\ResetPassword.cshtml" />
