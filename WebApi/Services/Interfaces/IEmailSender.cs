@@ -1,12 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using WebApi.Database.Entities;
 
-namespace WebApi.Services
+namespace WebApi.Services.Interfaces
 {
     public interface IEmailSender
     {
@@ -15,6 +10,4 @@ namespace WebApi.Services
         void AddEmailToQueue(Email email);
         void SendQueuedEmails();
     }
-
-
 }

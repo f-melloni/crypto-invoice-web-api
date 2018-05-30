@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace WebApi.Database.Entities
 {
+    public enum InvoiceState
+    {
+        NOT_PAID = 1,
+    }
+
     public class Invoice
     {
         [Key]
@@ -22,20 +27,11 @@ namespace WebApi.Database.Entities
         [Required]
         public string Recipient { get; set; }
 
-        public bool AcceptBTC { get; set; }
-        public bool AcceptLTC { get; set; }
-        public bool AcceptETH { get; set; }
-        public bool AcceptXMR { get; set; }
-
-        public string BTCAddress { get; set; }
-        public string LTCAddress { get; set; }
-        public string ETHVS { get; set; }
-        public string XMRVS { get; set; }
-
         /// <summary>
         /// Transaction ID of payment
         /// </summary>
         public string TransactionId { get; set; }
+
         /// <summary>
         /// In what crypto currency was the payment made
         /// </summary>
@@ -43,9 +39,9 @@ namespace WebApi.Database.Entities
 
         public DateTime DateCreated { get; set; }
         public DateTime? DateReceived { get; set; }
-        public User createdBy { get; set; }
+        public User CreatedBy { get; set; }
 
-        public int state { get; set; }
+        public int State { get; set; }
         public string FiatCurrencyCode { get; set; }
         public double FiatAmount { get; set; }
 
@@ -54,11 +50,11 @@ namespace WebApi.Database.Entities
         public string FileName { get; set; }
         public string FileMime { get; set; }
 
-        //ER = exchange rate
-     
-        public double? NewFixER_BTC { get; set; }
-        public double? NewFixER_LTC { get; set; }
-        public double? NewFixER_ETH { get; set; }
-        public double? NewFixER_XMR { get; set; }
+        public virtual ICollection<InvoicePayment> PaymentsAvailable { get; set; }
+
+        public Invoice()
+        {
+            PaymentsAvailable = new List<InvoicePayment>();
+        }
     }
 }

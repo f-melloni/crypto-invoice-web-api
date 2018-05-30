@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using RabbitMQ.Client;
-using Microsoft.Extensions.Configuration;
-using System.Text;
-using RabbitMQ.Client.Events;
+﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using SharpRaven;
 using SharpRaven.Data;
-using WebApi.Database.Entities;
+using System;
+using System.Linq;
+using System.Text;
 using WebApi.Database;
+using WebApi.Database.Entities;
 
 namespace WebApi.Services
 {
@@ -20,23 +18,29 @@ namespace WebApi.Services
         private static string QueueIn;
         private static string HostName;
         private static string Exchange;
+        private static string SentryUrl;
         private static ConnectionFactory factory;
         private static IModel channel;
         private static IConnection connection;
         private static IBasicProperties properties;
         private static EventingBasicConsumer Consumer;
-        private static RavenClient ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
+        private static RavenClient ravenClient;
 
         public static void Setup(IConfiguration configuration)
         {
+            string UserName = configuration["RabbitMQ:UserName"];
+            string Password = configuration["RabbitMQ:Password"];
+
+            QueueOut = configuration["RabbitMQ:QueueOut"];
+            QueueIn = configuration["RabbitMQ:QueueIn"];
+            HostName = configuration["RabbitMQ:HostName"];
+            Exchange = configuration["RabbitMQ:Exchange"];
+            SentryUrl = configuration["SentryClientUrl"];
+
+            ravenClient = new RavenClient(SentryUrl);
+
             try
             {
-                string UserName = configuration["RabbitMQ:UserName"];
-                string Password = configuration["RabbitMQ:Password"];
-                QueueOut = configuration["RabbitMQ:QueueOut"];
-                QueueIn = configuration["RabbitMQ:QueueIn"];
-                HostName = configuration["RabbitMQ:HostName"];
-                Exchange = configuration["RabbitMQ:Exchange"];
                 factory = new ConnectionFactory
                 {
                     UserName = UserName,
@@ -55,17 +59,16 @@ namespace WebApi.Services
                 Consumer.Received += (ch, ea) =>
                 {
                     JObject body = JObject.Parse(Encoding.UTF8.GetString(ea.Body));
+                    
                     //Parse WatchAddress message
-                    RabbitMessenger.ParseMessage(body);
+                    ParseMessage(body);
                     channel.BasicAck(ea.DeliveryTag, false);
                 };
                 String consumerTag = channel.BasicConsume(QueueIn, false, Consumer);
             }
             catch (Exception ex)
             {
-                ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
                 ravenClient.Capture(new SentryEvent(ex));
-
             }
         }
 
@@ -75,7 +78,7 @@ namespace WebApi.Services
             string method = message["method"].ToString();
             if (!String.IsNullOrEmpty(method))
             {
-                switch (method)
+                switch (method.ToLower())
                 {
                     case "TransactionSeen":
                         //get values from params
@@ -83,14 +86,13 @@ namespace WebApi.Services
                         string currencyCode = transactionSeenParams.GetValue("CurrencyCode").ToObject<string>();
                         string address = transactionSeenParams.GetValue("Address").ToObject<string>();
                         double amount = transactionSeenParams.GetValue("Amount").ToObject<double>();
-                        //DateTime timeStamp = transactionSeenParams.GetValue("Timestamp").ToObject<DateTime>();
 
                         //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
                         using (DBEntities dbe = new DBEntities()) {
-                            switch (currencyCode)
+                            /*switch (currencyCode)
                             {
                                 case "BTC":
-                                    Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address);
+                                    InvoiceAjaxModel invoiceBTC = dbe.Invoices.SingleOrDefaul t(i => i.BTCAddress == address);
                                     double btcAmountRequired = invoiceBTC.FiatAmount/(double)invoiceBTC.NewFixER_BTC ;
                                     if (amount >=  btcAmountRequired && invoiceBTC.state == 1 )
                                     {
@@ -99,17 +101,17 @@ namespace WebApi.Services
                                     dbe.Invoices.Update(invoiceBTC);
                                     break;
                                 case "LTC":
-                                    Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address);
+                                    InvoiceAjaxModel invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address);
                                     double ltcAmountRequired = invoiceLTC.FiatAmount/(double)invoiceLTC.NewFixER_LTC;
                                     if (amount >= ltcAmountRequired && invoiceLTC.state == 1)
                                     {
                                         invoiceLTC.state = 2;
                                     }
                                     dbe.Invoices.Update(invoiceLTC);
-
+                                    
                                     break;
 
-                            }
+                            }*/
                             dbe.SaveChanges();
 
                         }
@@ -125,7 +127,7 @@ namespace WebApi.Services
 
                         using (DBEntities dbe = new DBEntities())
                         {
-                            Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.Id == invoiceId);
+                            /*InvoiceAjaxModel invoice = dbe.Invoices.SingleOrDefault(i => i.Id == invoiceId);
                             switch (currCode)
                             {
                                 case "BTC":
@@ -136,7 +138,7 @@ namespace WebApi.Services
                                     break;
                             }
                             dbe.Invoices.Update(invoice);
-                            dbe.SaveChanges();
+                            dbe.SaveChanges();*/
                         }
 
                         break;
@@ -148,10 +150,10 @@ namespace WebApi.Services
                         string TxID_ = transactionConfirmedParams.GetValue("TXID").ToObject<string>();
                         using (DBEntities dbe = new DBEntities())
                         {
-                            switch (currencyCode_)
+                            /*switch (currencyCode_)
                             {
                                 case "BTC":
-                                    Invoice invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address_);
+                                    InvoiceAjaxModel invoiceBTC = dbe.Invoices.SingleOrDefault(i => i.BTCAddress == address_);
                                     if (invoiceBTC.FiatAmount/invoiceBTC.NewFixER_BTC <= amount_)
                                     {
                                         invoiceBTC.state = 3;
@@ -160,7 +162,7 @@ namespace WebApi.Services
                                     }
                                     break;
                                 case "LTC":
-                                    Invoice invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address_);
+                                    InvoiceAjaxModel invoiceLTC = dbe.Invoices.SingleOrDefault(i => i.LTCAddress == address_);
                                     if (invoiceLTC.FiatAmount/invoiceLTC.NewFixER_LTC <= amount_)
                                     {
                                         invoiceLTC.TransactionId = TxID_;
@@ -169,7 +171,7 @@ namespace WebApi.Services
 
                                     }
                                     break;
-                            }
+                            }*/
 
                             dbe.SaveChanges();
                         }
@@ -177,9 +179,6 @@ namespace WebApi.Services
                         break;
                 } 
             }
-     
-          
-               
         }
 
         //private static void GetAddress(JObject jOB)
@@ -207,17 +206,12 @@ namespace WebApi.Services
 
         private static void CreateChannel(object sender, ShutdownEventArgs e)
         {
-            try
-            {
+            try {
                 channel = connection.CreateModel();
             }
-            catch (Exception ex)
-            {
-                ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
+            catch (Exception ex) {
                 ravenClient.Capture(new SentryEvent(ex));
-
             }
-            System.Threading.Thread.Sleep(2500);
         }
 
         private static void Connect(object sender, ShutdownEventArgs e)
@@ -227,12 +221,9 @@ namespace WebApi.Services
                 connection = factory.CreateConnection();
                 CreateChannel(null, null);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ravenClient.Capture(new SentryEvent(ex));
-
             }
-            System.Threading.Thread.Sleep(2500);
         }
 
         public static void Send(string message,string queueOut="")
@@ -246,22 +237,21 @@ namespace WebApi.Services
             {
                 foreach (string message in messages)
                 {
-                    if (channel.IsClosed)
+                    if (channel.IsClosed) {
                         channel = connection.CreateModel();
+                    }
+
                     byte[] body = Encoding.UTF8.GetBytes(message);
-                    if (queueOut == "")
+                    if (queueOut == "") {
                         channel.BasicPublish("", QueueOut, properties, body);
-                    else
+                    }
+                    else {
                         channel.BasicPublish("", queueOut, properties, body);
-
-
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                ravenClient = new RavenClient(@"http://150379555fca4cf3b1145013d8d740c7:e237b7c99d944bec8a053f81a31f97a3@185.59.209.146:38082/2");
+            catch (Exception ex) {
                 ravenClient.Capture(new SentryEvent(ex));
-
             }
         }
 

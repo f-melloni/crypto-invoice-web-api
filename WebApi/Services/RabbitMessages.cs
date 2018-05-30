@@ -13,7 +13,6 @@ namespace WebApi.Services
         {
             string message = $@"{{""jsonrpc"": ""2.0"", ""method"": ""GetNewAddress"", ""params"": {{""InvoiceID"":{invoice_id},""XPUB"":""{user_xpub}"" }} }}";
             RabbitMessenger.Send(message,currencyCode);
-
         } 
     }
 }

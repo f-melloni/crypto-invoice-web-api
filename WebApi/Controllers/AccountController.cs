@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WebApi.Database.Entities;
 using WebApi.Models.AccountViewModels;
 using WebApi.Services;
+using WebApi.Services.Interfaces;
 
 namespace WebApi.Controllers
 {

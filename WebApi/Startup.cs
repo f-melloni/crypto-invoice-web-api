@@ -17,6 +17,10 @@ using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using System.Diagnostics;
+using WebApi.Services.Interfaces;
+using WebApi.Models;
+using WebApi.Adapters;
+using WebApi.Adapters.Interfaces;
 
 namespace WebApi
 {
@@ -25,8 +29,7 @@ namespace WebApi
         private static IConfiguration Configuration { get; set; }
         private IHostingEnvironment CurrentEnv { get; set; }
         public static string ConnectionString { get; set; }
-
-    
+        
         public Startup(IConfiguration configuration,IHostingEnvironment env)
         {
             Configuration = configuration;
@@ -47,7 +50,15 @@ namespace WebApi
             }).AddEntityFrameworkStores<DBEntities>()
                 .AddDefaultTokenProviders();
 
-
+            CurrencyConfiguration currencyConfiguration = Configuration.GetSection("CurrencyConfiguration").Get<CurrencyConfiguration>();
+            services.AddSingleton(currencyConfiguration);
+            
+            foreach(CurrencyConfigurationItem item in currencyConfiguration.Supported) {
+                string CC = item.CurrencyCode.ToUpper();
+                Type T = Type.GetType($"WebApi.Adapters.{CC}Adapter");
+                currencyConfiguration.Adapters.Add(CC, (ICurrencyAdapter)Activator.CreateInstance(T));
+            }
+            
             ////add fb +ggl oath
 
             ////FB

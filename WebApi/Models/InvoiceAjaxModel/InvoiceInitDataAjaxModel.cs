@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using WebApi.Database.Entities;
 
 namespace WebApi.Models.InvoiceAjaxModel
 {
@@ -10,7 +8,8 @@ namespace WebApi.Models.InvoiceAjaxModel
     {
         public string UserId { get; set; }
         public string DisplayName { get; set; }
-        public List<object> InvoiceList {get; set; }
+        public List<JObject> InvoiceList {get; set; }
+        public List<CurrencyConfigurationItem> SupportCurrencies { get; set; } = new List<CurrencyConfigurationItem>();
     }
     public class InvoiceInitModel
     {

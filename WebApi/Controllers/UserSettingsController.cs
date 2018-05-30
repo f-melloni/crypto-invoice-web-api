@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Database.Entities;
-using WebApi.Models.UserSettingsAjaxModel;
-using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Linq;
 using System.Security.Claims;
 using WebApi.Database;
-using Microsoft.AspNetCore.Cors;
+using WebApi.Models.UserSettingsAjaxModel;
 
 namespace WebApi.Controllers
 {
@@ -68,7 +65,6 @@ namespace WebApi.Controllers
                         user.XMRPublicViewKey = model.XMRPublicViewKey;
                         dbe.SaveChanges(); //updated in database
                         return Ok("{success: true}");
-
                     }
                 }
                 else
@@ -82,6 +78,5 @@ namespace WebApi.Controllers
                 return BadRequest(ex);
             }
         }
-
     }
 }

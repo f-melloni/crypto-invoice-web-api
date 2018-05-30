@@ -24,22 +24,17 @@ namespace WebApi.Services
                 Stream responseStream = response.GetResponseStream();
                 StreamReader responseReader = new StreamReader(responseStream);
                 string outputJsonString = responseReader.ReadToEnd();
-
-
-                if (!string.IsNullOrEmpty(outputJsonString))
-                {
+                
+                if (!string.IsNullOrEmpty(outputJsonString)) {
                     return JToken.Parse(outputJsonString);
                 }
-                else
-                {
+                else {
                     return null;
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception) {
                 return null;
             }
         }
-
     }
 }
