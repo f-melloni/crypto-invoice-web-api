@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -177,11 +178,12 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [EnableCors("CorsPolicy")]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            return Redirect("/");
+            return Ok("{}");
         }
 
         [HttpGet]
