@@ -59,9 +59,9 @@ namespace WebApi.Controllers
         {
             try {
                 using (DBEntities dbe = new DBEntities()) {
-                    Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.InvoiceGuid.ToString() == invoice_guid); //get the invoice
+                    Invoice invoice = dbe.Invoices.Include("PaymentsAvailable").Include("CreatedBy").SingleOrDefault(i => i.InvoiceGuid.ToString() == invoice_guid); //get the invoice
                     if (invoice != null)
-                        return Ok(invoice);
+                        return Ok(CreateInvoiceObject(invoice));
                     else
                         return NotFound();
                 }
@@ -253,7 +253,26 @@ namespace WebApi.Controllers
                     List<Invoice> invoiceList = dbe.Invoices.Include("PaymentsAvailable").Where(i => i.CreatedBy.Id == userId).ToList();
                     List<JObject> invoices = new List<JObject>();
                     foreach (Invoice item in invoiceList) {
-                        JObject invoice = new JObject() {
+                        JObject invoice = CreateInvoiceObject(item);
+                        invoices.Add(invoice);
+                    }
+
+                    return Ok(new InvoiceInitDataAjaxModel() {
+                        UserId = userId,
+                        DisplayName = displayName,
+                        InvoiceList = invoices,
+                        SupportCurrencies = currencyConfiguration.Supported
+                    });
+                }
+            }
+            catch (Exception ex) {
+                return BadRequest(ex);
+            }
+        }
+
+        private JObject CreateInvoiceObject(Invoice item)
+        {
+            JObject invoice = new JObject() {
                             { "id", item.Id },
                             { "name", item.Name },
                             { "description", item.Description },
@@ -271,31 +290,18 @@ namespace WebApi.Controllers
                             { "fileName", item.FileName }
                         };
 
-                        foreach (CurrencyConfigurationItem currency in currencyConfiguration.Supported) {
-                            var payment = item.PaymentsAvailable.Where(p => p.CurrencyCode == currency.CurrencyCode).SingleOrDefault();
-                            var CC = currency.CurrencyCode.ToUpper();
-                            var cc = currency.CurrencyCode.ToLower();
+            foreach (CurrencyConfigurationItem currency in currencyConfiguration.Supported) {
+                var payment = item.PaymentsAvailable.Where(p => p.CurrencyCode == currency.CurrencyCode).SingleOrDefault();
+                var CC = currency.CurrencyCode.ToUpper();
+                var cc = currency.CurrencyCode.ToLower();
 
-                            invoice[$"{cc}Address"] = payment != null ? payment.Address : "";
-                            invoice[$"{cc}vs"] = payment != null ? payment.VarSymbol : "";
-                            invoice[$"newFixER_{CC}"] = payment != null ? payment.ExchangeRate : 0;
-                            invoice[$"accept{CC}"] = payment != null ? true : false;
-                        }
-
-                        invoices.Add(invoice);
-                    }
-
-                    return Ok(new InvoiceInitDataAjaxModel() {
-                        UserId = userId,
-                        DisplayName = displayName,
-                        InvoiceList = invoices,
-                        SupportCurrencies = currencyConfiguration.Supported
-                    });
-                }
+                invoice[$"{cc}Address"] = payment != null ? payment.Address : "";
+                invoice[$"{cc}vs"] = payment != null ? payment.VarSymbol : "";
+                invoice[$"newFixER_{CC}"] = payment != null ? payment.ExchangeRate : 0;
+                invoice[$"accept{CC}"] = payment != null ? true : false;
             }
-            catch (Exception ex) {
-                return BadRequest(ex);
-            }
+
+            return invoice;
         }
     }
 }
