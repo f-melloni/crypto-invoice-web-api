@@ -1,24 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Database.Entities;
-using WebApi.Models.UserSettingsAjaxModel;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using WebApi.Database;
-using Microsoft.EntityFrameworkCore;
+using WebApi.Database.Entities;
+using WebApi.Models.FileModels;
 using WebApi.Models.InvoiceAjaxModel;
 using WebApi.Services;
-using Microsoft.AspNetCore.Cors;
-using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Http;
-using WebApi.Models.FileModels;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using System.IO;
-using System.ComponentModel.DataAnnotations;
 
 namespace WebApi.Controllers
 {
@@ -35,7 +31,6 @@ namespace WebApi.Controllers
 
         [Route("api/invoices/{invoice_id}")]
         [HttpGet]
-        [Authorize]
         [EnableCors("CorsPolicy")]
         public IActionResult GetInvoice(int invoice_id)
         {
@@ -121,20 +116,20 @@ namespace WebApi.Controllers
             }
         }
 
-        [Route("api/invoice/{id}")]
+        [Route("api/invoice/{guid}")]
         [HttpDelete]
         [Authorize]
         [EnableCors("CorsPolicy")]
-        public IActionResult deleteInvoice(int id)
+        public IActionResult deleteInvoice(string guid)
         {
             //Delete only invoices belonging to the logged in user
             var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             using (DBEntities dbe = new DBEntities())
             {
-                var invoiceExists = dbe.Invoices.Any(i => i.Id == id && i.createdBy.Id == userId);
+                var invoiceExists = dbe.Invoices.Any(i => i.InvoiceGuid.ToString() == guid && i.createdBy.Id == userId);
                 if (!invoiceExists)
                     return NotFound();
-                dbe.Invoices.Remove(dbe.Invoices.Single(i => i.Id == id));
+                dbe.Invoices.Remove(dbe.Invoices.Single(i => i.InvoiceGuid.ToString() == guid));
                 dbe.SaveChanges();
                 return Ok("{}");
             }
@@ -281,13 +276,13 @@ namespace WebApi.Controllers
                     var displayName = loggedUser.UserName;
                     // we do not want to send the User entity (settings, password hash etc.) with invoices
                     List<object> invoices = dbe.Invoices.Where(i => i.createdBy.Id == userId).Select(x => new {
-                        invoiceGuid = x.InvoiceGuid, name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
+                        name = x.Name, description = x.Description, btcAddress = x.BTCAddress, ltcAddress = x.LTCAddress,
                         ethvs = x.ETHVS, xmrvs = x.XMRVS, dateCreated = x.DateCreated, dateReceived = x.DateReceived, state = x.state,
                         fiatCurrencyCode = x.FiatCurrencyCode, fiatAmount = x.FiatAmount,
                         newFixER_BTC = x.NewFixER_BTC, newFixER_LTC = x.NewFixER_LTC, newFixER_ETH = x.NewFixER_ETH, newFixER_XMR = x.NewFixER_XMR,
                         createdBy = x.createdBy.Email, transactionCurrencyCode = x.TransactionCurrencyCode, transactionId = x.TransactionId,
                         acceptBTC = x.AcceptBTC, acceptLTC = x.AcceptLTC, acceptETH = x.AcceptETH, acceptXMR = x.AcceptXMR,
-                        recipient = x.Recipient
+                        recipient = x.Recipient, invoiceGuid = x.InvoiceGuid, fileUrl = x.File, fileName = x.FileName
                     }).ToList<object>();
                     /* foreach(Invoice i in invoices)
                         listInvoices.Add(new InvoiceInitModel() {Id = i.Id,Name = i.Name,DateCreated = i.DateCreated,Status = i.state}); */
