@@ -13,7 +13,7 @@ namespace WebApi.Database
     {
 
         public virtual DbSet<Invoice> Invoices { get; set; }
-        public virtual DbSet<InvoicePayment> InvoicePayments { get; set; }
+        public virtual DbSet<InvoicePayment> InvoicePayment { get; set; }
         public virtual DbSet<Email> Emails { get; set; }
 
         public DBEntities(DbContextOptions<DBEntities> options) : base(options)

@@ -42,7 +42,7 @@ namespace WebApi.Services
             
             //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
             using (DBEntities dbe = new DBEntities()) {
-                InvoicePayment payment = dbe.InvoicePayments.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
+                InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
                 if(payment != null) {
                     double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
                     if (model.Amount >= amountRequired && payment.Invoice.State == (int)InvoiceState.NOT_PAID) {
@@ -57,7 +57,7 @@ namespace WebApi.Services
         {
             TransactionConfirmedModel model = jsonParams.ToObject<TransactionConfirmedModel>();
             using (DBEntities dbe = new DBEntities()) {
-                InvoicePayment payment = dbe.InvoicePayments.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
+                InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
                 if (payment != null) {
                     double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
                     if (model.Amount >= amountRequired) {
