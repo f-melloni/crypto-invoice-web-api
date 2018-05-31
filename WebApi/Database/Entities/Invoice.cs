@@ -10,6 +10,8 @@ namespace WebApi.Database.Entities
     public enum InvoiceState
     {
         NOT_PAID = 1,
+        TRANSACTION_SEEN = 2,
+        TRANSACTION_CONFIRMED = 3
     }
 
     public class Invoice
