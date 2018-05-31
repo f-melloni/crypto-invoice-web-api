@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -26,14 +27,15 @@ namespace WebApi.Services
         private static EventingBasicConsumer Consumer;
         private static RavenClient ravenClient;
 
-        public static void Setup(IConfiguration configuration)
+        public static void Setup(IConfiguration configuration, IHostingEnvironment env)
         {
-            string UserName = configuration["RabbitMQ:UserName"];
-            string Password = configuration["RabbitMQ:Password"];
+            string key = env.IsDevelopment() ? "Development" : "Production";
+            string UserName = configuration[$"RabbitMQ:{key}:UserName"];
+            string Password = configuration[$"RabbitMQ:{key}:Password"];
 
             QueueOut = configuration["RabbitMQ:QueueOut"];
             QueueIn = configuration["RabbitMQ:QueueIn"];
-            HostName = configuration["RabbitMQ:HostName"];
+            HostName = configuration[$"RabbitMQ:{key}HostName"];
             Exchange = configuration["RabbitMQ:Exchange"];
             SentryUrl = configuration["SentryClientUrl"];
 
