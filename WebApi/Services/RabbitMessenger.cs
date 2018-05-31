@@ -35,7 +35,7 @@ namespace WebApi.Services
 
             QueueOut = configuration["RabbitMQ:QueueOut"];
             QueueIn = configuration["RabbitMQ:QueueIn"];
-            HostName = configuration[$"RabbitMQ:{key}HostName"];
+            HostName = configuration[$"RabbitMQ:{key}:HostName"];
             Exchange = configuration["RabbitMQ:Exchange"];
             SentryUrl = configuration["SentryClientUrl"];
 
