@@ -137,7 +137,7 @@ namespace WebApi
                 return;
             }
 
-            RabbitMessenger.Setup(Configuration);
+            RabbitMessenger.Setup(Configuration, env);
         }
     }
 }
