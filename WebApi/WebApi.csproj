@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\fonts\" />
+    <Folder Include="wwwroot\web-api-static\fonts\" />
   </ItemGroup>
 
 </Project>
