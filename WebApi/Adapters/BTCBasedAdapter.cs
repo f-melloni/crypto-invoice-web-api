@@ -40,11 +40,11 @@ namespace WebApi.Adapters
                     break;
                 case "CZK":
                     apiUrl = $"https://min-api.cryptocompare.com/data/generateAvg?fsym={_cc}&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
-                    var priceBTC_USD = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+                    var priceCC_USD = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
 
                     var apiUrlUsdCzk = $"http://free.currencyconverterapi.com/api/v5/convert?q=USD_CZK&compact=y";
                     var priceUsdCzk = RestClient.GetResponse(apiUrlUsdCzk).ToObject<JObject>().GetValue("USD_CZK").ToObject<JObject>().GetValue("val").ToObject<Double>();
-                    price = priceBTC_USD * priceUsdCzk;
+                    price = priceCC_USD * priceUsdCzk;
                     break;
             }
            
