@@ -187,7 +187,7 @@ namespace WebApi.Controllers
 
                         string subject = $"New invoice from {loggedUser.UserName}";
                         string attachment = $"{invoice.File}|{invoice.FileName}|{invoice.FileMime}";
-                        string body = System.IO.File.ReadAllText("Views/Email/invoice.html");
+                        string body = System.IO.File.ReadAllText("wwwroot/web-api-static/templates/email/invoice.html");
                         body = body.Replace("{User.Name}", loggedUser.UserName)
                                    .Replace("{Invoice.Name}", invoice.Name)
                                    .Replace("{Invoice.Description}", invoice.Description)
