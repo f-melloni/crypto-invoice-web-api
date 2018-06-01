@@ -239,31 +239,33 @@ namespace WebApi.Controllers
         }
 
         [Route("api/invoices/init")]
-        [Authorize]
         [EnableCors("CorsPolicy")]
         public IActionResult InitData()
         {
             try {
                 var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                using (DBEntities dbe = new DBEntities()) {
-                    User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
-                    var displayName = loggedUser.UserName;
+                string displayName = "";
+                List<JObject> invoices = new List<JObject>();
+                if (userId != null) {
+                    using (DBEntities dbe = new DBEntities()) {
+                        User loggedUser = dbe.Users.SingleOrDefault(u => u.Id == userId);
+                        displayName = loggedUser.UserName;
 
-                    List<Invoice> invoiceList = dbe.Invoices.Include("PaymentsAvailable").Where(i => i.CreatedBy.Id == userId).ToList();
-                    List<JObject> invoices = new List<JObject>();
-                    foreach (Invoice item in invoiceList) {
-                        JObject invoice = CreateInvoiceObject(item);
-                        invoices.Add(invoice);
+                        List<Invoice> invoiceList = dbe.Invoices.Include("PaymentsAvailable").Where(i => i.CreatedBy.Id == userId).ToList();
+                        foreach (Invoice item in invoiceList) {
+                            JObject invoice = CreateInvoiceObject(item);
+                            invoices.Add(invoice);
+                        }
                     }
-
-                    return Ok(new InvoiceInitDataAjaxModel() {
-                        UserId = userId,
-                        DisplayName = displayName,
-                        InvoiceList = invoices,
-                        SupportCurrencies = currencyConfiguration.Supported
-                    });
                 }
+
+                return Ok(new InvoiceInitDataAjaxModel() {
+                    UserId = userId,
+                    DisplayName = displayName,
+                    InvoiceList = invoices,
+                    SupportCurrencies = currencyConfiguration.Supported
+                });
             }
             catch (Exception ex) {
                 return BadRequest(ex);
