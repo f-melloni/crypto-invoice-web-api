@@ -11,6 +11,6 @@ namespace WebApi.Adapters.Interfaces
         void GetAddress(int invoiceId, string xpub);
         void GetAddress(int invoiceId, User loggedUser);
         string GetVarSymbol();
-        double GetExchangeRate();
+        double GetExchangeRate(string fiatCurrencyCode);
     }
 }

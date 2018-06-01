@@ -24,10 +24,30 @@ namespace WebApi.Adapters
         }
         public abstract void GetAddress(int invoiceId, User loggedUser);
 
-        public double GetExchangeRate()
+        public double GetExchangeRate(string fiatCurrencyCode)
         {
-            string apiUrl = $"https://min-api.cryptocompare.com/data/generateAvg?fsym={_cc}&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
-            var price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+            string apiUrl = "";
+            double price = 0;
+            switch (fiatCurrencyCode)
+            {
+                case "USD":
+                     apiUrl = $"https://min-api.cryptocompare.com/data/generateAvg?fsym={_cc}&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
+                     price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+                    break;
+                case "EUR":
+                    apiUrl = $"https://min-api.cryptocompare.com/data/generateAvg?fsym={_cc}&tsym=EUR&e=Kraken,Coinbase,HitBTC";
+                    price = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+                    break;
+                case "CZK":
+                    apiUrl = $"https://min-api.cryptocompare.com/data/generateAvg?fsym={_cc}&tsym=USD&e=Poloniex,Kraken,Coinbase,HitBTC";
+                    var priceCC_USD = RestClient.GetResponse(apiUrl).ToObject<JObject>().GetValue("RAW").ToObject<JObject>().GetValue("PRICE").ToObject<Double>();
+
+                    var apiUrlUsdCzk = $"http://free.currencyconverterapi.com/api/v5/convert?q=USD_CZK&compact=y";
+                    var priceUsdCzk = RestClient.GetResponse(apiUrlUsdCzk).ToObject<JObject>().GetValue("USD_CZK").ToObject<JObject>().GetValue("val").ToObject<Double>();
+                    price = priceCC_USD * priceUsdCzk;
+                    break;
+            }
+           
             return price;
         }
 

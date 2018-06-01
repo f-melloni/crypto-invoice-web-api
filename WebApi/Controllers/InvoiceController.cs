@@ -169,7 +169,7 @@ namespace WebApi.Controllers
                             invoice.PaymentsAvailable.Add(new InvoicePayment() {
                                 CurrencyCode = CC,
                                 VarSymbol = currencyConfiguration.Adapters[CC].GetVarSymbol(),
-                                ExchangeRate = currencyConfiguration.Adapters[CC].GetExchangeRate()
+                                ExchangeRate = currencyConfiguration.Adapters[CC].GetExchangeRate(invoice.FiatCurrencyCode)
                             });
                         }
 
