@@ -34,17 +34,17 @@
                         
                         <v-layout row>
                             <v-flex xs12>
-                                <v-text-field required type="email" label="E-mail" name="Email" v-model="model.Email" :rules="[rules.notEmpty, rules.email]"></v-text-field>
+                                <v-text-field @@input="validate" required type="email" label="E-mail" name="Email" v-model="model.Email" :rules="[rules.notEmpty, rules.email]"></v-text-field>
                             </v-flex>
                         </v-layout>
                         <v-layout row>
                             <v-flex xs12>
-                                <v-text-field required type="password" label="Password" name="Password" :rules="[rules.notEmpty]"></v-text-field>
+                                <v-text-field @@input="validate" required type="password" label="Password" name="Password" :rules="[rules.notEmpty]"></v-text-field>
                             </v-flex>
                         </v-layout>
                         <v-layout row>
                             <v-flex xs2>
-                                <v-checkbox value="true" color="orange" label="Remember me" v-model="model.RememberMe" name="RememberMe"></v-checkbox>
+                                <v-checkbox value="true" color="primary" label="Remember me" v-model="model.RememberMe" name="RememberMe"></v-checkbox>
                             </v-flex>
                             <v-spacer></v-spacer>
                         </v-layout>
@@ -100,6 +100,9 @@
                         $('input[name=RememberMe]').prop('checked', this.model.RememberMe);
                         $(this.$refs.form.$el).submit();
                     }
+                },
+                validate() {
+                    this.$refs.form.validate();
                 }
             }
         });
