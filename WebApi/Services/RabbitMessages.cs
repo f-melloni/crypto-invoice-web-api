@@ -47,6 +47,7 @@ namespace WebApi.Services
                     double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
                     if (model.Amount >= amountRequired && payment.Invoice.State == (int)InvoiceState.NOT_PAID) {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_SEEN;
+                        payment.Invoice.TransactionId = model.TXID;
                         dbe.SaveChanges();
                     }
                 }
@@ -62,9 +63,7 @@ namespace WebApi.Services
                     double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
                     if (model.Amount >= amountRequired) {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_CONFIRMED;
-                        payment.Invoice.TransactionCurrencyCode = model.CurrencyCode;
                         payment.Invoice.TransactionId = model.TXID;
-
                         dbe.SaveChanges();
                     }
                 }
