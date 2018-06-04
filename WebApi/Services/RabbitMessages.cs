@@ -25,7 +25,7 @@ namespace WebApi.Services
             SetAddressModel model = jsonParams.ToObject<SetAddressModel>();
             
             using (DBEntities dbe = new DBEntities()) {
-                Invoice invoice = dbe.Invoices.SingleOrDefault(i => i.Id == model.InvoiceId);
+                Invoice invoice = dbe.Invoices.Include("PaymentsAvailable").SingleOrDefault(i => i.Id == model.InvoiceId);
                 if (invoice != null) {
                     InvoicePayment payment = invoice.PaymentsAvailable.SingleOrDefault(p => p.CurrencyCode == model.CurrencyCode);
                     if (payment != null) {

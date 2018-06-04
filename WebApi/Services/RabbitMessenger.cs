@@ -97,13 +97,13 @@ namespace WebApi.Services
             {
                 switch (method.ToLower())
                 {
-                    case "SetAddress":
+                    case "setaddress":
                         RabbitMessages.OnSetAddress(message["params"]);
                         break;
-                    case "TransactionSeen":
+                    case "transactionseen":
                         RabbitMessages.OnTransactionSeen(message["params"]);
                         break;
-                    case "TransactionConfirmed":
+                    case "transactionconfirmed":
                         RabbitMessages.OnTransactionConfirmed(message["params"]);
                         break;
                 } 
