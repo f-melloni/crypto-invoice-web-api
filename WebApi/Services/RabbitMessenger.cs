@@ -8,6 +8,7 @@ using SharpRaven.Data;
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using WebApi.Database;
 using WebApi.Database.Entities;
 
@@ -48,10 +49,23 @@ namespace WebApi.Services
                     HostName = HostName,
                     Port = 5672
                 };
+
+                TryCreateConnection();
             }
             catch (Exception ex)
             {
                 ravenClient.Capture(new SentryEvent(ex));
+            }
+        }
+
+        private static void TryCreateConnection()
+        {
+            try {
+                CreateConnection();
+            }
+            catch(Exception) {
+                Thread.Sleep(2000);
+                TryCreateConnection();
             }
         }
 
@@ -115,6 +129,7 @@ namespace WebApi.Services
             }
             catch (Exception ex) {
                 ravenClient.Capture(new SentryEvent(ex));
+                throw ex;
             }
         }
 

@@ -16,5 +16,6 @@ namespace WebApi.Models
     {
         public string CurrencyCode { get; set; }
         public string BlockExplorerUrl { get; set; }
+        public string Color { get; set; }
     }
 }
