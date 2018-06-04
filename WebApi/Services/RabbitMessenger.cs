@@ -41,37 +41,38 @@ namespace WebApi.Services
 
             ravenClient = new RavenClient(SentryUrl);
 
-            try
-            {
-                factory = new ConnectionFactory
-                {
+            try {
+                factory = new ConnectionFactory {
                     UserName = UserName,
                     Password = Password,
                     HostName = HostName,
+                    Port = 5672
                 };
-
-                Connect(null, null);
-                connection.ConnectionShutdown += Connect;
-                channel.ModelShutdown += CreateChannel;
-
-                properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
-
-                Consumer = new EventingBasicConsumer(channel);
-                Consumer.Received += (ch, ea) =>
-                {
-                    JObject body = JObject.Parse(Encoding.UTF8.GetString(ea.Body));
-                    
-                    //Parse WatchAddress message
-                    ParseMessage(body);
-                    channel.BasicAck(ea.DeliveryTag, false);
-                };
-                String consumerTag = channel.BasicConsume(QueueIn, false, Consumer);
             }
             catch (Exception ex)
             {
                 ravenClient.Capture(new SentryEvent(ex));
             }
+        }
+
+        private static void CreateConnection()
+        {
+            Connect(null, null);
+            connection.ConnectionShutdown += Connect;
+            channel.ModelShutdown += CreateChannel;
+
+            properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
+
+            Consumer = new EventingBasicConsumer(channel);
+            Consumer.Received += (ch, ea) => {
+                JObject body = JObject.Parse(Encoding.UTF8.GetString(ea.Body));
+
+                //Parse WatchAddress message
+                ParseMessage(body);
+                channel.BasicAck(ea.DeliveryTag, false);
+            };
+            String consumerTag = channel.BasicConsume(QueueIn, false, Consumer);
         }
 
         public static void ParseMessage(JToken message)
@@ -128,6 +129,11 @@ namespace WebApi.Services
             {
                 foreach (string message in messages)
                 {
+                    // Connection is initialized on first request - docker race condition solution
+                    if(connection == null || !connection.IsOpen) {
+                        CreateConnection();
+                    }
+
                     if (channel.IsClosed) {
                         channel = connection.CreateModel();
                     }
