@@ -145,7 +145,8 @@ namespace WebApi.Controllers
                             Recipient = model.Recipient,
                             FiatCurrencyCode = model.FiatCurrencyCode,
                             FiatAmount = model.FiatAmount,
-                            FileName = model.FileName
+                            FileName = model.FileName,
+                            File = model.File
                         };
 
                         // Proccess uploaded file
