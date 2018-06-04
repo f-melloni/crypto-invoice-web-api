@@ -18,8 +18,8 @@ namespace WebApi.Models.RabbitMessageModels
                 _CC = value.ToUpper();
             }
         }
-
         public string Address { get; set; }
         public double Amount { get; set; }
+        public string TXID { get; set; }
     }
 }
