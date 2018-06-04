@@ -50,7 +50,7 @@ namespace WebApi.Services
                     Port = 5672
                 };
 
-                TryCreateConnection();
+                TryCreateConnection(null, null);
             }
             catch (Exception ex)
             {
@@ -58,21 +58,21 @@ namespace WebApi.Services
             }
         }
 
-        private static void TryCreateConnection()
+        private static void TryCreateConnection(object sender, ShutdownEventArgs e)
         {
             try {
                 CreateConnection();
             }
             catch(Exception) {
                 Thread.Sleep(2000);
-                TryCreateConnection();
+                TryCreateConnection(null, null);
             }
         }
 
         private static void CreateConnection()
         {
             Connect(null, null);
-            connection.ConnectionShutdown += Connect;
+            connection.ConnectionShutdown += TryCreateConnection;
             channel.ModelShutdown += CreateChannel;
 
             properties = channel.CreateBasicProperties();
@@ -97,13 +97,13 @@ namespace WebApi.Services
             {
                 switch (method.ToLower())
                 {
-                    case "SetAddress":
+                    case "setaddress":
                         RabbitMessages.OnSetAddress(message["params"]);
                         break;
-                    case "TransactionSeen":
+                    case "transactionseen":
                         RabbitMessages.OnTransactionSeen(message["params"]);
                         break;
-                    case "TransactionConfirmed":
+                    case "transactionconfirmed":
                         RabbitMessages.OnTransactionConfirmed(message["params"]);
                         break;
                 } 
