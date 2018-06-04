@@ -50,7 +50,7 @@ namespace WebApi.Services
                     Port = 5672
                 };
 
-                TryCreateConnection();
+                TryCreateConnection(null, null);
             }
             catch (Exception ex)
             {
@@ -58,21 +58,21 @@ namespace WebApi.Services
             }
         }
 
-        private static void TryCreateConnection()
+        private static void TryCreateConnection(object sender, ShutdownEventArgs e)
         {
             try {
                 CreateConnection();
             }
             catch(Exception) {
                 Thread.Sleep(2000);
-                TryCreateConnection();
+                TryCreateConnection(null, null);
             }
         }
 
         private static void CreateConnection()
         {
             Connect(null, null);
-            connection.ConnectionShutdown += Connect;
+            connection.ConnectionShutdown += TryCreateConnection;
             channel.ModelShutdown += CreateChannel;
 
             properties = channel.CreateBasicProperties();
