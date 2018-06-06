@@ -18,6 +18,8 @@ namespace WebApi.Adapters
             }
         }
 
+        public int LowestDenomination { get { return 8; } }
+
         public void GetAddress(int invoiceId, string xpub)
         {
             RabbitMessages.GetNewAddress(_cc, invoiceId, xpub);

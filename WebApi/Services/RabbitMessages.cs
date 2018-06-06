@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WebApi.Database;
 using WebApi.Database.Entities;
 using WebApi.Models.RabbitMessageModels;
+using WebApi.Adapters;
 
 namespace WebApi.Services
 {
@@ -61,6 +62,8 @@ namespace WebApi.Services
                 InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
                 if (payment != null) {
                     double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
+                    int lowestDenomination = CurrencyUtils.GetLowestDenomination(model.CurrencyCode.ToUpper());
+                    amountRequired = Math.Round(amountRequired, lowestDenomination);
                     if (model.Amount >= amountRequired) {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_CONFIRMED;
                         payment.Invoice.TransactionId = model.TXID;

@@ -12,5 +12,9 @@ namespace WebApi.Adapters.Interfaces
         void GetAddress(int invoiceId, User loggedUser);
         string GetVarSymbol();
         double GetExchangeRate(string fiatCurrencyCode);
+        /// <summary>
+        /// Smallest possible cryptocurrency decimal place (ie. 1 satoshi)
+        /// </summary>
+        int LowestDenomination { get; }
     }
 }
