@@ -179,7 +179,9 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

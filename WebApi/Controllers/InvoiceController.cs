@@ -35,7 +35,9 @@ namespace WebApi.Controllers
 
         [Route("api/invoices/{invoice_id}")]
         [HttpGet]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         public IActionResult GetInvoice(int invoice_id)
         {
             try {
@@ -54,7 +56,9 @@ namespace WebApi.Controllers
 
         [Route("api/invoices/{invoice_guid}")]
         [HttpGet]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         public IActionResult GetInvoice(string invoice_guid)
         {
             try {
@@ -107,7 +111,9 @@ namespace WebApi.Controllers
         [Route("api/invoice/{guid}")]
         [HttpDelete]
         [Authorize]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         public IActionResult DeleteInvoice(string guid)
         {
             //Delete only invoices belonging to the logged in user
@@ -125,7 +131,9 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Authorize]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         [Route("api/invoices")]
         public IActionResult CreateInvoice([FromBody]InvoiceAjaxModel model)
         {
@@ -222,7 +230,9 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Authorize]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         [Route("api/invoices")]
         public IActionResult GetListInvoices()
         {
@@ -240,7 +250,9 @@ namespace WebApi.Controllers
         }
 
         [Route("api/invoices/init")]
+        #if DEBUG
         [EnableCors("CorsPolicy")]
+        #endif
         public IActionResult InitData()
         {
             try {
