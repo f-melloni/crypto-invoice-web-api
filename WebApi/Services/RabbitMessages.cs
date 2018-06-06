@@ -45,7 +45,7 @@ namespace WebApi.Services
             using (DBEntities dbe = new DBEntities()) {
                 InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
                 if(payment != null) {
-                    double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
+                    double amountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.ExchangeRate, model.CurrencyCode);
                     if (model.Amount >= amountRequired && payment.Invoice.State == (int)InvoiceState.NOT_PAID) {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_SEEN;
                         payment.Invoice.TransactionId = model.TXID;
@@ -61,9 +61,7 @@ namespace WebApi.Services
             using (DBEntities dbe = new DBEntities()) {
                 InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
                 if (payment != null) {
-                    double amountRequired = payment.Invoice.FiatAmount / (double)payment.ExchangeRate;
-                    int lowestDenomination = CurrencyUtils.GetLowestDenomination(model.CurrencyCode.ToUpper());
-                    amountRequired = Math.Round(amountRequired, lowestDenomination);
+                    double amountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.ExchangeRate, model.CurrencyCode);
                     if (model.Amount >= amountRequired) {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_CONFIRMED;
                         payment.Invoice.TransactionId = model.TXID;
@@ -71,6 +69,12 @@ namespace WebApi.Services
                     }
                 }
             }
+        }
+
+        private static double GetAmountRequired(double fiatAmount, double exchangeRate, string currencyCode)
+        {
+            int lowestDenomination = CurrencyUtils.GetLowestDenomination(currencyCode.ToUpper());
+            return Math.Round(fiatAmount / exchangeRate, lowestDenomination);
         }
     }
 }
