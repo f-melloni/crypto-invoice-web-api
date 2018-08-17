@@ -66,6 +66,9 @@ namespace WebApi.Services
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_CONFIRMED;
                         payment.Invoice.TransactionId = model.TXID;
                         dbe.SaveChanges();
+
+                        // send mail
+                        EmailManager.SendMailToPaymentReciever(payment.Invoice, model);
                     }
                 }
             }
