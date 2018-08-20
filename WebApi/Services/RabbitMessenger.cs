@@ -16,8 +16,13 @@ namespace WebApi.Services
 {
     public static class RabbitMessenger
     {
-        private static string QueueOut;
+        //private static string QueueOut;
+        //private static string QueueIn;
+
         private static string QueueIn;
+        private static string QueueOutBTC;
+        private static string QueueOutLTC;
+
         private static string HostName;
         private static string Exchange;
         private static string SentryUrl;
@@ -34,16 +39,23 @@ namespace WebApi.Services
             string UserName = configuration[$"RabbitMQ:{key}:UserName"];
             string Password = configuration[$"RabbitMQ:{key}:Password"];
 
-            QueueOut = configuration["RabbitMQ:QueueOut"];
+            //QueueOut = configuration["RabbitMQ:QueueOut"];
+            //QueueIn = configuration["RabbitMQ:QueueIn"];
+
+            QueueOutBTC = configuration["RabbitMQ:QueueOutBTC"];
+            QueueOutLTC = configuration["RabbitMQ:QueueOutLTC"];
             QueueIn = configuration["RabbitMQ:QueueIn"];
+
             HostName = configuration[$"RabbitMQ:{key}:HostName"];
             Exchange = configuration["RabbitMQ:Exchange"];
             SentryUrl = configuration["SentryClientUrl"];
 
             ravenClient = new RavenClient(SentryUrl);
 
-            try {
-                factory = new ConnectionFactory {
+            try
+            {
+                factory = new ConnectionFactory
+                {
                     UserName = UserName,
                     Password = Password,
                     HostName = HostName,
@@ -60,10 +72,12 @@ namespace WebApi.Services
 
         private static void TryCreateConnection(object sender, ShutdownEventArgs e)
         {
-            try {
+            try
+            {
                 CreateConnection();
             }
-            catch(Exception) {
+            catch (Exception)
+            {
                 Thread.Sleep(2000);
                 TryCreateConnection(null, null);
             }
@@ -79,7 +93,8 @@ namespace WebApi.Services
             properties.Persistent = true;
 
             Consumer = new EventingBasicConsumer(channel);
-            Consumer.Received += (ch, ea) => {
+            Consumer.Received += (ch, ea) =>
+            {
                 JObject body = JObject.Parse(Encoding.UTF8.GetString(ea.Body));
 
                 //Parse WatchAddress message
@@ -106,16 +121,23 @@ namespace WebApi.Services
                     case "transactionconfirmed":
                         RabbitMessages.OnTransactionConfirmed(message["params"]);
                         break;
-                } 
+                }
             }
         }
 
         private static void CreateChannel(object sender, ShutdownEventArgs e)
         {
-            try {
+            try
+            {
                 channel = connection.CreateModel();
+
+                // Declare queues we are going to use
+                channel.QueueDeclare(QueueIn, true, false, false, null);
+                channel.QueueDeclare(QueueOutBTC, true, false, false, null);
+                channel.QueueDeclare(QueueOutLTC, true, false, false, null);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 ravenClient.Capture(new SentryEvent(ex));
             }
         }
@@ -127,42 +149,42 @@ namespace WebApi.Services
                 connection = factory.CreateConnection();
                 CreateChannel(null, null);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 ravenClient.Capture(new SentryEvent(ex));
                 throw ex;
             }
         }
 
-        public static void Send(string message,string queueOut="")
+        public static void Send(string message, string queueOut = "")
         {
-            Send(new string[] { message },queueOut);
+            Send(new string[] { message }, queueOut);
         }
 
-        public static void Send(string[] messages,string queueOut="")
+        public static void Send(string[] messages, string queueOut = "")
         {
             try
             {
                 foreach (string message in messages)
                 {
                     // Connection is initialized on first request - docker race condition solution
-                    if(connection == null || !connection.IsOpen) {
+                    if (connection == null || !connection.IsOpen)
+                    {
                         CreateConnection();
                     }
 
-                    if (channel.IsClosed) {
+                    if (channel.IsClosed)
+                    {
                         channel = connection.CreateModel();
                     }
 
                     byte[] body = Encoding.UTF8.GetBytes(message);
-                    if (queueOut == "") {
-                        channel.BasicPublish("", QueueOut, properties, body);
-                    }
-                    else {
+                    if(queueOut != "")
                         channel.BasicPublish("", queueOut, properties, body);
-                    }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 ravenClient.Capture(new SentryEvent(ex));
             }
         }

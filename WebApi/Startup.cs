@@ -38,6 +38,11 @@ namespace WebApi
             ConnectionString = CurrentEnv.IsDevelopment()
                ? Configuration.GetConnectionString("DefaultConnection")
                : Configuration.GetConnectionString("ReleaseConnection");
+
+            using (var context = new DBEntities())
+            {
+                context.Database.Migrate();
+            }
         }
 
 
