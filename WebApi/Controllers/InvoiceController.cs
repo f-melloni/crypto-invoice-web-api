@@ -64,8 +64,20 @@ namespace WebApi.Controllers
             try {
                 using (DBEntities dbe = new DBEntities()) {
                     Invoice invoice = dbe.Invoices.Include("PaymentsAvailable").Include("CreatedBy").SingleOrDefault(i => i.InvoiceGuid.ToString() == invoice_guid); //get the invoice
-                    if (invoice != null)
+
+                    if (invoice != null) { //Invoice exists
+                        
+                        if(DateTime.Now.Subtract(invoice.ExchangeRateSetTime).TotalMinutes > 15) { // Exchange rates need to be updated
+                            foreach (var payment in invoice.PaymentsAvailable) {
+                                payment.PreviousExchangeRate = payment.ExchangeRate;
+                                payment.ExchangeRate = currencyConfiguration.Adapters[payment.CurrencyCode].GetExchangeRate(invoice.FiatCurrencyCode);
+                                invoice.ExchangeRateSetTime = DateTime.Now;
+                            }
+                            dbe.SaveChanges();
+                        }
+
                         return Ok(CreateInvoiceObject(invoice));
+                    }
                     else
                         return NotFound();
                 }
@@ -92,6 +104,7 @@ namespace WebApi.Controllers
                         invoice.Description = invoiceModel.Description;
                         invoice.FiatAmount = invoiceModel.FiatAmount;
                         invoice.FiatCurrencyCode = invoiceModel.FiatCurrencyCode;
+                        invoice.ExchangeRateMode = invoiceModel.ExchangeRateMode;
 
                         dbe.Invoices.Update(invoice);
                         dbe.SaveChanges();
@@ -152,6 +165,8 @@ namespace WebApi.Controllers
                             Description = model.Description,
                             Recipient = model.Recipient,
                             FiatCurrencyCode = model.FiatCurrencyCode,
+                            ExchangeRateMode = model.ExchangeRateMode,
+                            ExchangeRateSetTime = DateTime.Now,
                             FiatAmount = model.FiatAmount,
                             FileName = model.FileName,
                             File = model.File
@@ -178,7 +193,7 @@ namespace WebApi.Controllers
                             invoice.PaymentsAvailable.Add(new InvoicePayment() {
                                 CurrencyCode = CC,
                                 VarSymbol = currencyConfiguration.Adapters[CC].GetVarSymbol(),
-                                ExchangeRate = currencyConfiguration.Adapters[CC].GetExchangeRate(invoice.FiatCurrencyCode)
+                                ExchangeRate = currencyConfiguration.Adapters[CC].GetExchangeRate(invoice.FiatCurrencyCode),
                             });
                         }
 
@@ -295,6 +310,7 @@ namespace WebApi.Controllers
                             { "dateReceived", item.DateReceived },
                             { "state", item.State },
                             { "fiatCurrencyCode", item.FiatCurrencyCode },
+                            { "exchangeRateMode", item.ExchangeRateMode },
                             { "fiatAmount", item.FiatAmount },
                             { "createdBy", item.CreatedBy.Email },
                             { "transactionCurrencyCode", item.TransactionCurrencyCode },

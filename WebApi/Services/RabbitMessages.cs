@@ -40,16 +40,38 @@ namespace WebApi.Services
         public static void OnTransactionSeen(JToken jsonParams)
         {
             TransactionSeenModel model = jsonParams.ToObject<TransactionSeenModel>();
-            
+
             //check if theres invoice with the same address and currencycode + amount in invoice is >= amount received
-            using (DBEntities dbe = new DBEntities()) {
+            using (DBEntities dbe = new DBEntities())
+            {
                 InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
-                if(payment != null) {
+                if (payment != null)
+                {
                     double amountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.ExchangeRate, model.CurrencyCode);
-                    if (model.Amount >= amountRequired && payment.Invoice.State == (int)InvoiceState.NOT_PAID) {
-                        payment.Invoice.State = (int)InvoiceState.TRANSACTION_SEEN;
-                        payment.Invoice.TransactionId = model.TXID;
-                        dbe.SaveChanges();
+                    if (payment.Invoice.State == (int)InvoiceState.NOT_PAID)
+                    {
+                        if (model.Amount >= amountRequired)
+                        {
+                            payment.Invoice.State = (int)InvoiceState.TRANSACTION_SEEN;
+                            payment.Invoice.TransactionId = model.TXID;
+                            dbe.SaveChanges();
+                        }
+                        else
+                        {
+                            var transactionTime = DateTimeOffset.FromUnixTimeSeconds(model.Timestamp).UtcDateTime;
+
+                            // Special case: if the transaction is less that 3 minutes late, previous exchange rate is still alowed
+                            if (transactionTime.Subtract(payment.Invoice.ExchangeRateSetTime).TotalMinutes < 3)
+                            {
+                                double previousAmountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.PreviousExchangeRate, model.CurrencyCode);
+                                if (model.Amount >= previousAmountRequired)
+                                {
+                                    payment.Invoice.State = (int)InvoiceState.TRANSACTION_SEEN;
+                                    payment.Invoice.TransactionId = model.TXID;
+                                    dbe.SaveChanges();
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -58,17 +80,37 @@ namespace WebApi.Services
         public static void OnTransactionConfirmed(JToken jsonParams)
         {
             TransactionConfirmedModel model = jsonParams.ToObject<TransactionConfirmedModel>();
-            using (DBEntities dbe = new DBEntities()) {
+            using (DBEntities dbe = new DBEntities())
+            {
                 InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
-                if (payment != null) {
+                if (payment != null)
+                {
                     double amountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.ExchangeRate, model.CurrencyCode);
-                    if (model.Amount >= amountRequired) {
+
+                    if (model.Amount >= amountRequired)
+                    {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_CONFIRMED;
                         payment.Invoice.TransactionId = model.TXID;
                         dbe.SaveChanges();
 
                         // send mail
                         EmailManager.SendMailToPaymentReciever(payment.Invoice, model);
+                    }
+                    else
+                    {
+                        var transactionTime = DateTimeOffset.FromUnixTimeSeconds(model.Timestamp).UtcDateTime;
+
+                        // Special case: if the transaction is less that 3 minutes late, previous exchange rate is still alowed
+                        if (transactionTime.Subtract(payment.Invoice.ExchangeRateSetTime).TotalMinutes < 3)
+                        {
+                            double previousAmountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.PreviousExchangeRate, model.CurrencyCode);
+                            if (model.Amount >= previousAmountRequired)
+                            {
+                                payment.Invoice.State = (int)InvoiceState.TRANSACTION_SEEN;
+                                payment.Invoice.TransactionId = model.TXID;
+                                dbe.SaveChanges();
+                            }
+                        }
                     }
                 }
             }

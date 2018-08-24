@@ -15,6 +15,7 @@ namespace WebApi.Models.InvoiceAjaxModel
 
         public string FiatCurrencyCode { get; set; }
         public double FiatAmount { get; set; }
+        public string ExchangeRateMode { get; set; }
 
         public User CreatedBy { get; set; }
 

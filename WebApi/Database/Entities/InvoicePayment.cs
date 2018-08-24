@@ -24,6 +24,7 @@ namespace WebApi.Database.Entities
         public string VarSymbol { get; set; }
 
         public double? ExchangeRate { get; set; }
+        public double? PreviousExchangeRate { get; set; }
 
         [Required]
         public virtual Invoice Invoice { get; set; }

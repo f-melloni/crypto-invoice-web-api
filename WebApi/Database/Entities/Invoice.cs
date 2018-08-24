@@ -19,6 +19,7 @@ namespace WebApi.Database.Entities
         private string _name;
         private string _recipient;
         private string _fiatCurrCode;
+        private string _exchangeRateMode;
         private string _description;
 
         [Key]
@@ -75,6 +76,13 @@ namespace WebApi.Database.Entities
         
         [Required]
         public double FiatAmount { get; set; }
+
+        public string ExchangeRateMode
+        {
+            get { return _exchangeRateMode; }
+            set { _exchangeRateMode = HtmlUtil.CutHtml(value); }
+        }
+        public DateTime ExchangeRateSetTime { get; set; }
 
         // File
         public string File { get; set; }

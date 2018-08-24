@@ -21,5 +21,6 @@ namespace WebApi.Models.RabbitMessageModels
         public string Address { get; set; }
         public double Amount { get; set; }
         public string TXID { get; set; }
+        public int Timestamp { get; set; }
     }
 }
