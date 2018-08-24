@@ -82,7 +82,7 @@ namespace WebApi.Database.Entities
             get { return _exchangeRateMode; }
             set { _exchangeRateMode = HtmlUtil.CutHtml(value); }
         }
-        public DateTime ExchangeRateSetTime { get; set; }
+        public DateTime? ExchangeRateSetTime { get; set; }
 
         // File
         public string File { get; set; }

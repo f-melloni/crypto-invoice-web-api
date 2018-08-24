@@ -61,7 +61,7 @@ namespace WebApi.Services
                             var transactionTime = DateTimeOffset.FromUnixTimeSeconds(model.Timestamp).UtcDateTime;
 
                             // Special case: if the transaction is less that 3 minutes late, previous exchange rate is still alowed
-                            if (transactionTime.Subtract(payment.Invoice.ExchangeRateSetTime).TotalMinutes < 3)
+                            if (payment.Invoice.ExchangeRateSetTime != null && transactionTime.Subtract(payment.Invoice.ExchangeRateSetTime.Value).TotalMinutes < 3)
                             {
                                 double previousAmountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.PreviousExchangeRate, model.CurrencyCode);
                                 if (model.Amount >= previousAmountRequired)
@@ -101,7 +101,7 @@ namespace WebApi.Services
                         var transactionTime = DateTimeOffset.FromUnixTimeSeconds(model.Timestamp).UtcDateTime;
 
                         // Special case: if the transaction is less that 3 minutes late, previous exchange rate is still alowed
-                        if (transactionTime.Subtract(payment.Invoice.ExchangeRateSetTime).TotalMinutes < 3)
+                        if (payment.Invoice.ExchangeRateSetTime != null && transactionTime.Subtract(payment.Invoice.ExchangeRateSetTime.Value).TotalMinutes < 3)
                         {
                             double previousAmountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.PreviousExchangeRate, model.CurrencyCode);
                             if (model.Amount >= previousAmountRequired)

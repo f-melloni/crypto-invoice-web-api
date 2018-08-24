@@ -12,9 +12,10 @@ using WebApi.Services;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DBEntities))]
-    partial class DBEntitiesModelSnapshot : ModelSnapshot
+    [Migration("20180824142456_Add exchange rate fixing properties")]
+    partial class Addexchangeratefixingproperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,7 +164,7 @@ namespace WebApi.Migrations
 
                     b.Property<string>("ExchangeRateMode");
 
-                    b.Property<DateTime?>("ExchangeRateSetTime");
+                    b.Property<DateTime>("ExchangeRateSetTime");
 
                     b.Property<double>("FiatAmount");
 

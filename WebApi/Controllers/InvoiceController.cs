@@ -67,12 +67,12 @@ namespace WebApi.Controllers
 
                     if (invoice != null) { //Invoice exists
                         
-                        if(DateTime.Now.Subtract(invoice.ExchangeRateSetTime).TotalMinutes > 15) { // Exchange rates need to be updated
+                        if(invoice.ExchangeRateSetTime == null || DateTime.Now.Subtract(invoice.ExchangeRateSetTime.Value).TotalMinutes > 15) { // Exchange rates need to be updated
                             foreach (var payment in invoice.PaymentsAvailable) {
                                 payment.PreviousExchangeRate = payment.ExchangeRate;
                                 payment.ExchangeRate = currencyConfiguration.Adapters[payment.CurrencyCode].GetExchangeRate(invoice.FiatCurrencyCode);
-                                invoice.ExchangeRateSetTime = DateTime.Now;
                             }
+                            invoice.ExchangeRateSetTime = DateTime.Now;
                             dbe.SaveChanges();
                         }
 
@@ -166,7 +166,7 @@ namespace WebApi.Controllers
                             Recipient = model.Recipient,
                             FiatCurrencyCode = model.FiatCurrencyCode,
                             ExchangeRateMode = model.ExchangeRateMode,
-                            ExchangeRateSetTime = DateTime.Now,
+                            ExchangeRateSetTime = null,
                             FiatAmount = model.FiatAmount,
                             FileName = model.FileName,
                             File = model.File
@@ -190,10 +190,15 @@ namespace WebApi.Controllers
 
                         foreach (string cc in model.Accept) {
                             string CC = cc.ToUpper();
+
+                            // Check if exchange rate should be calculated now, or when the recipent opens payment page
+                            double? exchangeRate = invoice.ExchangeRateMode == "invoice" ?
+                                currencyConfiguration.Adapters[CC].GetExchangeRate(invoice.FiatCurrencyCode) : (double?)null;
+
                             invoice.PaymentsAvailable.Add(new InvoicePayment() {
                                 CurrencyCode = CC,
                                 VarSymbol = currencyConfiguration.Adapters[CC].GetVarSymbol(),
-                                ExchangeRate = currencyConfiguration.Adapters[CC].GetExchangeRate(invoice.FiatCurrencyCode),
+                                ExchangeRate = exchangeRate
                             });
                         }
 
