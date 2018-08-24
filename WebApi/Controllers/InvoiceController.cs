@@ -59,21 +59,22 @@ namespace WebApi.Controllers
         #if DEBUG
         [EnableCors("CorsPolicy")]
         #endif
-        public IActionResult GetInvoice(string invoice_guid)
+        public IActionResult GetInvoice(string invoice_guid, string no_update)
         {
             try {
                 using (DBEntities dbe = new DBEntities()) {
                     Invoice invoice = dbe.Invoices.Include("PaymentsAvailable").Include("CreatedBy").SingleOrDefault(i => i.InvoiceGuid.ToString() == invoice_guid); //get the invoice
 
                     if (invoice != null) { //Invoice exists
-                        
-                        if(invoice.ExchangeRateSetTime == null || DateTime.Now.Subtract(invoice.ExchangeRateSetTime.Value).TotalMinutes > 15) { // Exchange rates need to be updated
-                            foreach (var payment in invoice.PaymentsAvailable) {
-                                payment.PreviousExchangeRate = payment.ExchangeRate;
-                                payment.ExchangeRate = currencyConfiguration.Adapters[payment.CurrencyCode].GetExchangeRate(invoice.FiatCurrencyCode);
+                        if(no_update != "true") { //query parameter no_update is used internally to prevent exchange rate update when viewing the invoice
+                            if(invoice.ExchangeRateSetTime == null || DateTime.Now.Subtract(invoice.ExchangeRateSetTime.Value).TotalMinutes > 15) { // Exchange rates need to be updated
+                                foreach (var payment in invoice.PaymentsAvailable) {
+                                    payment.PreviousExchangeRate = payment.ExchangeRate;
+                                    payment.ExchangeRate = currencyConfiguration.Adapters[payment.CurrencyCode].GetExchangeRate(invoice.FiatCurrencyCode);
+                                }
+                                invoice.ExchangeRateSetTime = DateTime.Now;
+                                dbe.SaveChanges();
                             }
-                            invoice.ExchangeRateSetTime = DateTime.Now;
-                            dbe.SaveChanges();
                         }
 
                         return Ok(CreateInvoiceObject(invoice));
