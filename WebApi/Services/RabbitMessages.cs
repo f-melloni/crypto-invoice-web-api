@@ -91,6 +91,7 @@ namespace WebApi.Services
                     {
                         payment.Invoice.State = (int)InvoiceState.TRANSACTION_CONFIRMED;
                         payment.Invoice.TransactionId = model.TXID;
+                        payment.Invoice.DateReceived = DateTime.Now;
                         dbe.SaveChanges();
 
                         // send mail
