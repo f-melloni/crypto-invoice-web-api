@@ -12,6 +12,7 @@
   <ItemGroup>
     <Content Remove="wwwroot\web-api-static\templates\email\invoice.html" />
     <Content Remove="wwwroot\web-api-static\templates\email\paymentConfirmationReciever.html" />
+    <Content Remove="wwwroot\web-api-static\templates\email\paymentConfirmationSender.html" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,6 +53,9 @@
     <None Include="Views\_ViewImports.cshtml" />
     <None Include="Views\_ViewStart.cshtml" />
     <None Include="wwwroot\web-api-static\templates\email\invoice.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="wwwroot\web-api-static\templates\email\paymentConfirmationSender.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="wwwroot\web-api-static\templates\email\paymentConfirmationReciever.html">

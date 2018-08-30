@@ -15,7 +15,7 @@ namespace WebApi.Services
 
         public static void SendMailToPaymentReciever(Invoice invoice, TransactionConfirmedModel confirmation)
         {
-            string subject = $"CryptoMail - incoming payment from {invoice.Recipient}";
+            string subject = $"CryptoMail - incoming payment from {invoice.Recipient} confirmed";
             string body = System.IO.File.ReadAllText("wwwroot/web-api-static/templates/email/paymentConfirmationReciever.html");
             body = body.Replace("{Title}", subject)
                         .Replace("{Sender}", invoice.Recipient)
@@ -29,6 +29,25 @@ namespace WebApi.Services
 
             EmailSender sender = new EmailSender(_configuration);
             Email email = sender.CreateEmailEntity("info@octupus.com", invoice.CreatedBy.Email, body, subject, null);
+            sender.AddEmailToQueue(email);
+        }
+
+        public static void SendMailToPaymentSender(Invoice invoice, TransactionConfirmedModel confirmation)
+        {
+            string subject = $"CryptoMail - outcoming payment to {invoice.CreatedBy.Email} confirmed";
+            string body = System.IO.File.ReadAllText("wwwroot/web-api-static/templates/email/paymentConfirmationSender.html");
+            body = body.Replace("{Title}", subject)
+                        .Replace("{Reciever}", invoice.CreatedBy.Email)
+                        .Replace("{Invoice}", invoice.Name)
+                        .Replace("{AmountFiat}", invoice.FiatAmount.ToString())
+                        .Replace("{CurrencyFiat}", invoice.FiatCurrencyCode)
+                        .Replace("{AmountCrypto}", confirmation.Amount.ToString())
+                        .Replace("{CurrencyCrypto}", confirmation.CurrencyCode)
+                        .Replace("{TargetAddressCrypto}", confirmation.Address)
+                        .Replace("{TransactionTimestamp}", invoice.DateReceived.ToString());
+
+            EmailSender sender = new EmailSender(_configuration);
+            Email email = sender.CreateEmailEntity("info@octupus.com", invoice.Recipient, body, subject, null);
             sender.AddEmailToQueue(email);
         }
     }

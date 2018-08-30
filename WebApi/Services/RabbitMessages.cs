@@ -96,6 +96,7 @@ namespace WebApi.Services
 
                         // send mail
                         EmailManager.SendMailToPaymentReciever(payment.Invoice, model);
+                        EmailManager.SendMailToPaymentSender(payment.Invoice, model);
                     }
                     else
                     {
