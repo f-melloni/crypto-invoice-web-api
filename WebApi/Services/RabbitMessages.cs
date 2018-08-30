@@ -82,7 +82,7 @@ namespace WebApi.Services
             TransactionConfirmedModel model = jsonParams.ToObject<TransactionConfirmedModel>();
             using (DBEntities dbe = new DBEntities())
             {
-                InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
+                InvoicePayment payment = dbe.InvoicePayment.Include("Invoice").Include("Invoice.CreatedBy").SingleOrDefault(p => p.Address == model.Address && p.CurrencyCode == model.CurrencyCode);
                 if (payment != null)
                 {
                     double amountRequired = GetAmountRequired(payment.Invoice.FiatAmount, (double)payment.ExchangeRate, model.CurrencyCode);
