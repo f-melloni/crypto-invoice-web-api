@@ -93,7 +93,7 @@ namespace WebApi.Services
                         };
 
                         //check if there's attachment/s
-                        if (email.AttachmenList != "" && email.AttachmenList.Split(',').Count() > 0) {
+                        if (!string.IsNullOrWhiteSpace(email.AttachmenList) && email.AttachmenList.Split(',').Count() > 0) {
                             foreach (var item in email.AttachmenList.Split(',')) {
                                 string[] info = item.Split('|');
                                 byte[] fileContent = WebDAVClient.GetFile(info[0]);
